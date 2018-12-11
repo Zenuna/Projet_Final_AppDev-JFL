@@ -1,0 +1,26 @@
+<!DOCTYPE html>
+<html xmlns="http://www.w3.org/1999/xhtml" xmlns:th="http://www.thymeleaf.org"
+      xmlns:sec="http://www.thymeleaf.org/thymeleaf-extras-springsecurity3">
+<head>
+    <title>Ouverture de session</title>
+</head>
+<body>
+<h1>Ouverture de session</h1>
+<h2>Veuillez vous identifier</h2>
+<div th:if="${param.error}">
+    Utilisateur ou mot de passe invalide(s).
+</div>
+<div th:if="${param.logout}">
+    La session est terminée.
+</div>
+<form th:action="@{/login}" method="post">
+    <table>
+        <tr><td><label> Utilisateur : </label></td><td><input type="text"
+                                                              name="username" value="v1@dojo"/></td></tr>
+        <tr><td><label> Mot de passe: </label></td><td><input type="password"
+                                                              name="password" value="Patate123"/></td></tr>
+    </table>
+    <input type="submit" id="connexion" value="Établir une session"/></div>
+</form>
+</body>
+</html>

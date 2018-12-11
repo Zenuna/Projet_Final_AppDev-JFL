@@ -1,0 +1,78 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Laboratoire 6: WebSocket</title>
+    <link href="/webjars/bootstrap/css/bootstrap.min.css" rel="stylesheet">
+    <link href="/main.css" rel="stylesheet">
+
+    <script src="/webjars/jquery/jquery.min.js"></script>
+    <script src="/webjars/sockjs-client/sockjs.min.js"></script>
+    <script src="/webjars/stomp-websocket/stomp.min.js"></script>
+
+    <script src="/app.js"></script>
+</head>
+<body>
+<noscript><h2 style="color: #ff0000">Activer Javascript</h2></noscript>
+
+<canvas id="unCanvas"  style="display:none"></canvas>
+<div id="main-content" class="container">
+    <div class="row">
+        <h1>ATTENTION:Cette application fonctionne uniquement avec Firefox</h1>
+    </div>
+    <div class="row">
+        <div class="col-md-4">
+            <video id="uneVideo" autoplay width="200" height="150"></video>
+            <img id="uneImage"  width="200" height="150">
+            <div class="form-group">
+                <button id="btnVideo" class="btn btn-default" type="submit">Prendre une photo</button>
+                <button id="btnImage" class="btn btn-default" type="submit" >Prendre une photo</button>
+            </div>
+
+            <div class="form-group">
+                <label for="de">Votre identité:</label>
+                <input type="text" id="de" class="form-control" placeholder="Entrez votre identité...">
+
+                <label for="texte">Votre message:</label>
+                <input type="text" id="texte" class="form-control" placeholder="Entrez votre texte ici...">
+            </div>
+            <button id="envoyer" class="btn btn-default" type="submit" disabled="disabled">Envoyer</button>
+
+        </div>
+        <div class="col-md-4">
+        </div>
+
+
+        <div class="col-md-4">
+
+            <div class="form-group">
+                <label for="mindelta">Valeur minimale delta enregistrée en millisecondes:</label>
+                <input type="text" id="mindelta" class="form-control" value="-1"  readonly/>
+
+                <label for="maxdelta">Valeur maximale delta enregistrée en millisecondes:</label>
+                <input type="text" id="maxdelta" class="form-control"  value="-1" readonly/>
+            </div>
+
+            <div class="form-group">
+                <label for="connexion">Connexion:</label>
+                <button id="connexion" class="btn btn-default" type="submit">Établir la connexion</button>
+                <button id="deConnexion" class="btn btn-default" type="submit" disabled="disabled">Fermer la connexion</button>
+            </div>
+
+        </div>
+    </div>
+    <div class="row">
+        <div class="col-md-12">
+            <table id="conversation" class="table table-striped">
+                <thead>
+                <tr>
+                    <th>Réponses</th>
+                </tr>
+                </thead>
+                <tbody id="reponses">
+                </tbody>
+            </table>
+        </div>
+    </div>
+</div>
+</body>
+</html>
