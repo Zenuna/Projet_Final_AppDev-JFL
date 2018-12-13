@@ -22,10 +22,19 @@ import java.util.Map;
 @Controller
 public class controleurMVC {
 
+    @RequestMapping(value = "/", method = RequestMethod.GET)
+    public String accueil(Map<String, Object> model) {
+        return "public/kumite";
+    }
+
     @RequestMapping(value = "/login", method = RequestMethod.GET)
     public String login(Map<String, Object> model) {
         return "login";
     }
 
+    @RequestMapping(value = "/gradation", method = RequestMethod.GET)
+    public String gradation(Map<String, Object> model) {
+        return "public/gradation";
+    }
 
 }

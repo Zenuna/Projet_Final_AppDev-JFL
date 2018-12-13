@@ -11,10 +11,6 @@ public class WebSocketAuthorizationSecurityConfig extends AbstractSecurityWebSoc
 
     @Override
     protected void configureInbound(final MessageSecurityMetadataSourceRegistry messages) {
-       /* messages
-                .simpMessageDestMatchers("/message/publique")
-                .hasAnyAuthority("SENSEI","VÉNÉRABLE", "ANCIEN")
-                .simpSubscribeDestMatchers("/message/prive").authenticated();*/
 
     }
 

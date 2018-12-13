@@ -26,10 +26,12 @@ public class SecuriteWebConfiguration extends WebSecurityConfigurerAdapter {
     protected void configure(HttpSecurity http) throws Exception {
         //permettre toutes les requêtes
         http.authorizeRequests()
+                // Page de base (Diffusion combat/Lien vers passage de grade)
                 .antMatchers("/").permitAll()
+                // Login duh
                 .antMatchers("/login/**","/login").permitAll()
-                .antMatchers("/kumite/**", "/kumite/").authenticated()
-                .antMatchers("/gradation/**", "/gradation/").hasAnyAuthority("VÉNÉRABLE","SENSEI")
+                // Gradation
+                .antMatchers("/gradation/**", "/gradation/").hasAnyAuthority("VENERABLE","SENSEI")
                 .and()
                 .sessionManagement()
                 .sessionCreationPolicy(SessionCreationPolicy.ALWAYS)
