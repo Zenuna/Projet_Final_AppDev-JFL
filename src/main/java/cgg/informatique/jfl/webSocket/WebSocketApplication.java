@@ -33,10 +33,10 @@ public class WebSocketApplication implements CommandLineRunner {
 	@Autowired
 	private CompteDao compteDao;
 
-	private List<Compte> lstComptesAilleurs = new ArrayList<>();
-	private List<Compte> lstComptesSpectateur = new ArrayList<>();
-	private List<Compte> lstComptesAttente = new ArrayList<>();
-	private List<Compte> lstComptesArbitre = new ArrayList<>();
+	private static List<Compte> lstComptesAilleurs = new ArrayList<>();
+	private static List<Compte> lstComptesSpectateur = new ArrayList<>();
+	private static List<Compte> lstComptesAttente = new ArrayList<>();
+	private static List<Compte> lstComptesArbitre = new ArrayList<>();
 
 	public static void main(String[] args) {
 		SpringApplication.run(WebSocketApplication.class, args);
@@ -108,6 +108,8 @@ public class WebSocketApplication implements CommandLineRunner {
 			System.out.println(lstComptesAttente.toString());
 			System.out.println(lstComptesSpectateur.toString());
 			*/Message unMessage = new Message("v1@dojo", "AILLEURS", creation, "", "POSITION");
+			session.send("/app/listePosition", unMessage);/*			*/
+			unMessage = new Message("s1@dojo", "ATTENTE", creation, "", "POSITION");
 			session.send("/app/listePosition", unMessage);/*
 
 			unMessage = new Message("ARB", lstComptesArbitre.toString(), creation, "", "POSITION");
@@ -126,103 +128,103 @@ public class WebSocketApplication implements CommandLineRunner {
 		videListeExtract(strBonneListe, compte, index, lstComptesAttente, lstComptesSpectateur, lstComptesAilleurs, lstComptesArbitre);
 	}
 
-	public static void videListeExtract(String strBonneListe, Compte compte, int index, List<Compte> lstComptesAttente, List<Compte> lstComptesSpectateur, List<Compte> lstComptesAilleurs, List<Compte> lstComptesArbitre) {
+	public static void videListeExtract(String strBonneListe, Compte compte, int index, List<Compte> lstComptesAttenteRecu, List<Compte> lstComptesSpectateurRecu, List<Compte> lstComptesAilleurRecus, List<Compte> lstComptesArbitreRecu) {
 		switch(strBonneListe){
 			case "AILLEURS" :
-				for(Compte c : lstComptesAttente){
+				for(Compte c : lstComptesAttenteRecu){
 					if(c.getUsername().equals(compte.getUsername())){
-						index = lstComptesAttente.indexOf(c);
+						index = lstComptesAttenteRecu.indexOf(c);
 					}
 
 				}
-				if(index != -1) lstComptesAttente.remove(index);
+				if(index != -1) lstComptesAttenteRecu.remove(index);
 				index = -1;
-				for(Compte c : lstComptesSpectateur){
+				for(Compte c : lstComptesSpectateurRecu){
 					if(c.getUsername().equals(compte.getUsername())) {
-						index = lstComptesSpectateur.indexOf(c);
+						index = lstComptesSpectateurRecu.indexOf(c);
 					}
 				}
-				if(index != -1) lstComptesSpectateur.remove(index);
-				lstComptesAilleurs.add(compte);
+				if(index != -1) lstComptesSpectateurRecu.remove(index);
+				lstComptesAilleurRecus.add(compte);
 				break;
 			case "ATTENTE":
-				for(Compte c : lstComptesAilleurs){
+				for(Compte c : lstComptesAilleurRecus){
 					if(c.getUsername().equals(compte.getUsername())) {
-						index = lstComptesAilleurs.indexOf(c);
+						index = lstComptesAilleurRecus.indexOf(c);
 					}
 				}
-				if(index != -1) lstComptesAilleurs.remove(index);
+				if(index != -1) lstComptesAilleurRecus.remove(index);
 				index = -1;
-				for(Compte c : lstComptesSpectateur){
+				for(Compte c : lstComptesSpectateurRecu){
 					if(c.getUsername().equals(compte.getUsername())) {
-						index = lstComptesSpectateur.indexOf(c);
+						index = lstComptesSpectateurRecu.indexOf(c);
 					}
 				}
-				if(index != -1) lstComptesSpectateur.remove(index);
-				lstComptesAttente.add(compte);
+				if(index != -1) lstComptesSpectateurRecu.remove(index);
+				lstComptesAttenteRecu.add(compte);
 				break;
 			case "SPECTATEUR":
-				for(Compte c : lstComptesAilleurs){
+				for(Compte c : lstComptesSpectateurRecu){
 					if(c.getUsername().equals(compte.getUsername())) {
-						index = lstComptesAilleurs.indexOf(c);
+						index = lstComptesAilleurRecus.indexOf(c);
 					}
 				}
-				if(index != -1) lstComptesAilleurs.remove(index);
+				if(index != -1) lstComptesSpectateurRecu.remove(index);
 				index = -1;
-				for(Compte c : lstComptesAttente){
+				for(Compte c : lstComptesAttenteRecu){
 					if(c.getUsername().equals(compte.getUsername())) {
-						index = lstComptesAttente.indexOf(c);
+						index = lstComptesAttenteRecu.indexOf(c);
 					}
 				}
-				if(index != -1) lstComptesAttente.remove(index);
-				lstComptesSpectateur.add(compte);
+				if(index != -1) lstComptesAttenteRecu.remove(index);
+				lstComptesSpectateurRecu.add(compte);
 				break;
 			case "PEACE":
-				for(Compte c : lstComptesAilleurs){
+				for(Compte c : lstComptesAilleurRecus){
 					if(c.getUsername().equals(compte.getUsername())) {
-						index = lstComptesAilleurs.indexOf(c);
+						index = lstComptesAilleurRecus.indexOf(c);
 					}
 				}
-				if(index != -1) lstComptesAilleurs.remove(index);
+				if(index != -1) lstComptesAilleurRecus.remove(index);
 				index = -1;
-				for(Compte c : lstComptesArbitre){
+				for(Compte c : lstComptesArbitreRecu){
 					if(c.getUsername().equals(compte.getUsername())) {
-						index = lstComptesArbitre.indexOf(c);
+						index = lstComptesArbitreRecu.indexOf(c);
 					}
 				}
-				if(index != -1) lstComptesArbitre.remove(index);
+				if(index != -1) lstComptesArbitreRecu.remove(index);
 				index = -1;
-				for(Compte c : lstComptesAttente){
+				for(Compte c : lstComptesAttenteRecu){
 					if(c.getUsername().equals(compte.getUsername())) {
-						index = lstComptesAttente.indexOf(c);
+						index = lstComptesAttenteRecu.indexOf(c);
 					}
 				}
-				if(index != -1) lstComptesAttente.remove(index);
+				if(index != -1) lstComptesAttenteRecu.remove(index);
 				index = -1;
-				for(Compte c : lstComptesSpectateur){
+				for(Compte c : lstComptesSpectateurRecu){
 					if(c.getUsername().equals(compte.getUsername())) {
-						index = lstComptesSpectateur.indexOf(c);
+						index = lstComptesSpectateurRecu.indexOf(c);
 					}
 				}
-				if(index != -1) lstComptesSpectateur.remove(index);
+				if(index != -1) lstComptesSpectateurRecu.remove(index);
 				break;
 			default:
 				if(strBonneListe.equals("ARBITRE")){
-					for(Compte c : lstComptesArbitre){
+					for(Compte c : lstComptesArbitreRecu){
 						if(c.getUsername().equals(compte.getUsername())) {
-							index = lstComptesArbitre.indexOf(c);
+							index = lstComptesArbitreRecu.indexOf(c);
 						}
 					}
-					if(index != -1) lstComptesArbitre.remove(index);
-					lstComptesArbitre.add(compte);
+					if(index != -1) lstComptesArbitreRecu.remove(index);
+					lstComptesArbitreRecu.add(compte);
 				}
 				else{
-					for(Compte c : lstComptesArbitre){
+					for(Compte c : lstComptesArbitreRecu){
 						if(c.getUsername().equals(compte.getUsername())) {
-							index = lstComptesArbitre.indexOf(c);
+							index = lstComptesArbitreRecu.indexOf(c);
 						}
 					}
-					if(index != -1) lstComptesArbitre.remove(index);
+					if(index != -1) lstComptesArbitreRecu.remove(index);
 				}
 				break;
 		}

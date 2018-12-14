@@ -30,6 +30,9 @@ public class ReponseControleur {
     private ExamenDao examenDao;
 
     @Autowired
+    private AvatarDao avatarDao;
+
+    @Autowired
     private RoleDao roleDao;
 
     @Autowired
@@ -48,6 +51,13 @@ public class ReponseControleur {
     //Constante pour btn (USERS)
     private final String s1 = "s1@dojo";
     private final String v1 = "v1@dojo";
+
+    // POUR TROUVER AVATAR
+    @RequestMapping(value="/TrouverAvatarSupreme/{nom}", method= RequestMethod.GET)
+    public String avatar(@PathVariable String nom) {
+        return avatarDao.findByNom(nom).getAvatar();
+    }
+
 
     @CrossOrigin()
     @MessageMapping("/messageprive")
@@ -90,7 +100,7 @@ public class ReponseControleur {
     @SendTo("/sujet/radiogroup")
     public Reponse position(Message message) throws Exception{
         Compte compte = compteDao.findById(message.getDe()).get();
-        CompteSimple compteSimple = new CompteSimple(compte.getUsername(),compte.getAvatar().getAvatar().replaceAll("data:image/jpeg;base64,",""));
+
 
         //On positionne/repositionne
         videListe(message.getTexte().trim().toUpperCase(),compte);
@@ -236,18 +246,18 @@ public class ReponseControleur {
     public String ListeAilleur(Model model) {
         return "AIL"+lstComptesAilleurs.toString();
     }
-    // POUR TROUVER LISTE AILLEURS
-    @RequestMapping(value="/ListeAvatarAilleur", method= RequestMethod.GET)
-    public String ListeAvatarAilleur(Model model) {
-
-        String strAvatarAilleurs = "";
-        for (Compte c : lstComptesAilleurs){
-            strAvatarAilleurs += c.getAvatar().getAvatar()+"-----";
-        }
-        System.out.println(lstComptesAilleurs);
-       // strAvatarAilleurs += compteDao.findById("v1@dojo").get().getAvatar().getAvatar();
-        return strAvatarAilleurs;
-    }
+//    // POUR TROUVER LISTE AILLEURS
+//    @RequestMapping(value="/ListeAvatarAilleur", method= RequestMethod.GET)
+//    public String ListeAvatarAilleur(Model model) {
+//
+//        String strAvatarAilleurs = "";
+//        for (Compte c : lstComptesAilleurs){
+//            strAvatarAilleurs += c.getAvatar().getAvatar()+"-----";
+//        }
+//        System.out.println(lstComptesAilleurs);
+//       // strAvatarAilleurs += compteDao.findById("v1@dojo").get().getAvatar().getAvatar();
+//        return strAvatarAilleurs;
+//    }
 
     // POUR TROUVER LISTE ARBITRE
     @RequestMapping(value="/ListeArbitre", method= RequestMethod.GET)

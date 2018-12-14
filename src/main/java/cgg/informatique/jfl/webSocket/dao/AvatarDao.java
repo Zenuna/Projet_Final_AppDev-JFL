@@ -4,4 +4,5 @@ import cgg.informatique.jfl.webSocket.entites.Avatar;
 import org.springframework.data.jpa.repository.JpaRepository;
 
 public interface AvatarDao extends JpaRepository<Avatar,String> {
+    public Avatar findByNom(String strNom);
 }

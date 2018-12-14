@@ -220,5 +220,14 @@ public class Compte implements UserDetails {
         this.evalues = evalues;
     }
 
-
+    @Override
+    public String toString() {
+        return "{" +
+                "\"courriel\":\"" + username + "\"" +
+                ",\"MdeP\":\"" + password + "\"" +
+                ",\"avatar\":\"" + avatar.getNom() + "\"" +
+                ",\"role\":\"" + role.getRole() + "\"" +
+                ",\"groupe\":\"" + groupe.getGroupe() + "\"" +
+                "}";
+    }
 }
