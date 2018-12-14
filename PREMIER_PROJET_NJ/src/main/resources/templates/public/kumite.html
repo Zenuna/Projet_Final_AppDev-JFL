@@ -1,0 +1,115 @@
+<!DOCTYPE html>
+<html xmlns="http://www.w3.org/1999/xhtml" xmlns:th="http://www.thymeleaf.org"
+      xmlns:sec="http://www.thymeleaf.org/thymeleaf-extras-springsecurity4" lang="fr">
+
+<link href="/webjars/bootstrap/css/bootstrap.min.css" rel="stylesheet">
+<link href="css/main.css" rel="stylesheet">
+
+<script type="text/javascript" src="http://ajax.googleapis.com/ajax/libs/jquery/1.5/jquery.min.js"></script>
+<script src="/webjars/sockjs-client/sockjs.min.js"></script>
+<script src="/webjars/stomp-websocket/stomp.min.js"></script>
+<script src="js/kumite.js"></script>
+<head>
+    <meta charset="UTF-8">
+    <title>Kumite</title>
+
+</head>
+<body class="container">
+<br />
+<div id="main-content" class="panel panel-default">
+    <div id="titre" class="header-panel" style="margin-left:5px">
+        <p class="h1 text-center">Kumite</p>
+    </div>
+        <div id="nosInfos" class="panel panel-default" style="margin-left:5px">
+                <span th:each="compte : ${lesComptes} " >
+                    <span th:if="${compte.getCourriel()}==${#authentication.name}">
+                        <br />
+                        <span id="uneImageSrc" hidden="hidden" th:text="${compte.getAvatar()}"></span>
+                        <span id="compteCourriel" hidden="hidden" th:text="${compte.getCourriel()}"></span>
+                        <img th:src="${compte.getAvatar()}"/>
+                        <p name="alias" class="h3" id="alias" th:text="${compte.getAlias()}"></p>
+                        <p class="h5" th:text="'Titre :' + ${compte.getRole()}"></p>
+                        <p class="h5" th:text="'Ceinture : ' + ${compte.getGroupe()}"></p>
+                        <br />
+                    </span>
+                </span>
+        </div>
+    <br />
+        <div class="panel panel-default" style="margin-left:5px">
+            <p class="h3" th:text="Position"/>
+            <div class="h4" id="positionCombat"></div>
+            <br />
+            <fieldset id="position">
+                <input id="spec" type="radio" value="Spectateur" name="position" checked="checked" th:text="Spectateur">
+                <br />
+                <input id="comp" type="radio" value="Compétiteur" name="position" th:text="Compétiteur">
+                <br />
+                <input id="arbitre" type="radio" value="Arbitre" name="position" th:text="Arbitre">
+            </fieldset>
+        </div>
+    <div align="center">
+        <p style="margin-left:5px"> Cliquer <a th:href="@{/}">ici</a> pour retourner au dojo.</p>
+        <br />
+        <p class="h2" style="margin-left:5px">Les spectateurs</p>
+        <img id="imgSiegeSpec1" src="images/siege.jpg"/>
+        <img id="imgSiegeSpec2" src="images/siege.jpg"/>
+        <img id="imgSiegeSpec3" src="images/siege.jpg"/>
+        <img id="imgSiegeSpec4" src="images/siege.jpg"/>
+        <img id="imgSiegeSpec5" src="images/siege.jpg"/>
+        <img id="imgSiegeSpec6" src="images/siege.jpg"/>
+        <img id="imgSiegeSpec7" src="images/siege.jpg"/>
+        <img id="imgSiegeSpec8" src="images/siege.jpg"/>
+        <img id="imgSiegeSpec9" src="images/siege.jpg"/>
+        <img id="imgSiegeSpec10" src="images/siege.jpg"/>
+        <img id="imgSiegeSpec11" src="images/siege.jpg"/>
+        <img id="imgSiegeSpec12" src="images/siege.jpg"/>
+    </div>
+    <div align="center">
+        <br />
+        <p class="h2" style="margin-left:5px">Les compétiteurs en attente d'un combat</p>
+        <img id="imgSiegeCombattant1" src="images/siege.jpg"/>
+        <img id="imgSiegeCombattant2" src="images/siege.jpg"/>
+        <img id="imgSiegeCombattant3" src="images/siege.jpg"/>
+        <img id="imgSiegeCombattant4" src="images/siege.jpg"/>
+        <img id="imgSiegeCombattant5" src="images/siege.jpg"/>
+        <img id="imgSiegeCombattant6" src="images/siege.jpg"/>
+        <img id="imgSiegeCombattant7" src="images/siege.jpg"/>
+        <img id="imgSiegeCombattant8" src="images/siege.jpg"/>
+        <img id="imgSiegeCombattant9" src="images/siege.jpg"/>
+        <img id="imgSiegeCombattant10" src="images/siege.jpg"/>
+        <img id="imgSiegeCombattant11" src="images/siege.jpg"/>
+        <img id="imgSiegeCombattant12" src="images/siege.jpg"/>
+    </div>
+    <div >
+        <br />
+        <p class="h2" style="margin-left:5px" align="center">La surface de combat</p>
+        <div id="dialogue" style="width: 100%;">
+            <div id="paroleBlanc" style="float: left" class="h2" align="left"></div>
+            <div id="paroleArbitre" style="margin: 0 auto; width: 100px;text-align: center" class="h3" align="center"></div>
+            <div id="paroleRouge" style="float: right" class="h2" align="right"></div>
+        </div>
+        <div id="arbitreEnChef" align="center">
+            <img id="imgVictoireBlanc" src="images/drapeaurouge.jpg" hidden="hidden"/>
+            <img id="imgTatamiArbitre" src="images/tatami.jpg"/>
+            <img id="imgVictoireRouge" src="images/drapeaurouge.jpg" hidden="hidden"/>
+        </div>
+        <div align="center">
+            <img id="imgTatami1" src="images/tatami.jpg"/>
+            <img id="imgTatami2" src="images/tatami.jpg"/>
+            <img id="imgTatami3" src="images/tatami.jpg"/>
+            <img id="imgTatami4" src="images/tatami.jpg"/>
+            <img id="imgTatami5" src="images/tatami.jpg"/>
+            <img id="imgTatami6" src="images/tatami.jpg"/>
+            <img id="imgTatami7" src="images/tatami.jpg"/>
+            <img id="imgTatami8" src="images/tatami.jpg"/>
+            <img id="imgTatami9" src="images/tatami.jpg"/>
+            <img id="imgTatami10" src="images/tatami.jpg"/>
+        </div>
+    </div>
+    <br />
+    <br />
+    <br />
+
+</div>
+</body>
+</html>
