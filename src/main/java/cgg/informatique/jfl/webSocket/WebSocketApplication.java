@@ -33,10 +33,10 @@ public class WebSocketApplication implements CommandLineRunner {
 	@Autowired
 	private CompteDao compteDao;
 
-	private List<CompteSimple> lstComptesAilleurs = new ArrayList<>();
-	private List<CompteSimple> lstComptesSpectateur = new ArrayList<>();
-	private List<CompteSimple> lstComptesAttente = new ArrayList<>();
-	private List<CompteSimple> lstComptesArbitre = new ArrayList<>();
+	private List<Compte> lstComptesAilleurs = new ArrayList<>();
+	private List<Compte> lstComptesSpectateur = new ArrayList<>();
+	private List<Compte> lstComptesAttente = new ArrayList<>();
+	private List<Compte> lstComptesArbitre = new ArrayList<>();
 
 	public static void main(String[] args) {
 		SpringApplication.run(WebSocketApplication.class, args);
@@ -86,10 +86,8 @@ public class WebSocketApplication implements CommandLineRunner {
 					ObjectMapper objMapper = new ObjectMapper();
 					Reponse rep = objMapper.readValue(payload.toString(),Reponse.class);
 					Compte compte = new Compte();
-					CompteSimple compteSimple = null;
 					compte = compteDao.findById(rep.getDe()).get();
-					compteSimple = new CompteSimple(compte.getUsername(),compte.getAvatar().getAvatar().replaceAll("data:image/jpeg;base64,",""));
-					videListe(rep.getTexte().trim().toUpperCase(),compteSimple);
+					videListe(rep.getTexte().trim().toUpperCase(),compte);
 
 				}
 				catch(Exception e){
@@ -102,15 +100,15 @@ public class WebSocketApplication implements CommandLineRunner {
 		while (true) {
 			//À toutes les 5 secondes, un message est transmis par le serveur
 
-			/*Thread.sleep(5000);
+			Thread.sleep(5000);
 			Long creation = System.currentTimeMillis();
-
+/*
 			System.out.println(lstComptesAilleurs.toString());
 			System.out.println(lstComptesArbitre.toString());
 			System.out.println(lstComptesAttente.toString());
 			System.out.println(lstComptesSpectateur.toString());
-			Message unMessage = new Message("AIL", lstComptesAilleurs.toString(), creation, "", "POSITION");
-			session.send("/app/message/listePosition", unMessage);
+			*/Message unMessage = new Message("v1@dojo", "AILLEURS", creation, "", "POSITION");
+			session.send("/app/listePosition", unMessage);/*
 
 			unMessage = new Message("ARB", lstComptesArbitre.toString(), creation, "", "POSITION");
 			session.send("/app/message/listePosition", unMessage);
@@ -123,86 +121,86 @@ public class WebSocketApplication implements CommandLineRunner {
 
 		}
 	}
-	public void videListe(String strBonneListe, CompteSimple compteSimple){
+	public void videListe(String strBonneListe, Compte compte){
 		int index = -1;
-		videListeExtract(strBonneListe, compteSimple, index, lstComptesAttente, lstComptesSpectateur, lstComptesAilleurs, lstComptesArbitre);
+		videListeExtract(strBonneListe, compte, index, lstComptesAttente, lstComptesSpectateur, lstComptesAilleurs, lstComptesArbitre);
 	}
 
-	public static void videListeExtract(String strBonneListe, CompteSimple compteSimple, int index, List<CompteSimple> lstComptesAttente, List<CompteSimple> lstComptesSpectateur, List<CompteSimple> lstComptesAilleurs, List<CompteSimple> lstComptesArbitre) {
+	public static void videListeExtract(String strBonneListe, Compte compte, int index, List<Compte> lstComptesAttente, List<Compte> lstComptesSpectateur, List<Compte> lstComptesAilleurs, List<Compte> lstComptesArbitre) {
 		switch(strBonneListe){
 			case "AILLEURS" :
-				for(CompteSimple c : lstComptesAttente){
-					if(c.getUsername().equals(compteSimple.getUsername())){
+				for(Compte c : lstComptesAttente){
+					if(c.getUsername().equals(compte.getUsername())){
 						index = lstComptesAttente.indexOf(c);
 					}
 
 				}
 				if(index != -1) lstComptesAttente.remove(index);
 				index = -1;
-				for(CompteSimple c : lstComptesSpectateur){
-					if(c.getUsername().equals(compteSimple.getUsername())) {
+				for(Compte c : lstComptesSpectateur){
+					if(c.getUsername().equals(compte.getUsername())) {
 						index = lstComptesSpectateur.indexOf(c);
 					}
 				}
 				if(index != -1) lstComptesSpectateur.remove(index);
-				lstComptesAilleurs.add(compteSimple);
+				lstComptesAilleurs.add(compte);
 				break;
 			case "ATTENTE":
-				for(CompteSimple c : lstComptesAilleurs){
-					if(c.getUsername().equals(compteSimple.getUsername())) {
+				for(Compte c : lstComptesAilleurs){
+					if(c.getUsername().equals(compte.getUsername())) {
 						index = lstComptesAilleurs.indexOf(c);
 					}
 				}
 				if(index != -1) lstComptesAilleurs.remove(index);
 				index = -1;
-				for(CompteSimple c : lstComptesSpectateur){
-					if(c.getUsername().equals(compteSimple.getUsername())) {
+				for(Compte c : lstComptesSpectateur){
+					if(c.getUsername().equals(compte.getUsername())) {
 						index = lstComptesSpectateur.indexOf(c);
 					}
 				}
 				if(index != -1) lstComptesSpectateur.remove(index);
-				lstComptesAttente.add(compteSimple);
+				lstComptesAttente.add(compte);
 				break;
 			case "SPECTATEUR":
-				for(CompteSimple c : lstComptesAilleurs){
-					if(c.getUsername().equals(compteSimple.getUsername())) {
+				for(Compte c : lstComptesAilleurs){
+					if(c.getUsername().equals(compte.getUsername())) {
 						index = lstComptesAilleurs.indexOf(c);
 					}
 				}
 				if(index != -1) lstComptesAilleurs.remove(index);
 				index = -1;
-				for(CompteSimple c : lstComptesAttente){
-					if(c.getUsername().equals(compteSimple.getUsername())) {
+				for(Compte c : lstComptesAttente){
+					if(c.getUsername().equals(compte.getUsername())) {
 						index = lstComptesAttente.indexOf(c);
 					}
 				}
 				if(index != -1) lstComptesAttente.remove(index);
-				lstComptesSpectateur.add(compteSimple);
+				lstComptesSpectateur.add(compte);
 				break;
 			case "PEACE":
-				for(CompteSimple c : lstComptesAilleurs){
-					if(c.getUsername().equals(compteSimple.getUsername())) {
+				for(Compte c : lstComptesAilleurs){
+					if(c.getUsername().equals(compte.getUsername())) {
 						index = lstComptesAilleurs.indexOf(c);
 					}
 				}
 				if(index != -1) lstComptesAilleurs.remove(index);
 				index = -1;
-				for(CompteSimple c : lstComptesArbitre){
-					if(c.getUsername().equals(compteSimple.getUsername())) {
+				for(Compte c : lstComptesArbitre){
+					if(c.getUsername().equals(compte.getUsername())) {
 						index = lstComptesArbitre.indexOf(c);
 					}
 				}
 				if(index != -1) lstComptesArbitre.remove(index);
 				index = -1;
-				for(CompteSimple c : lstComptesAttente){
-					if(c.getUsername().equals(compteSimple.getUsername())) {
+				for(Compte c : lstComptesAttente){
+					if(c.getUsername().equals(compte.getUsername())) {
 						index = lstComptesAttente.indexOf(c);
 					}
 				}
 				if(index != -1) lstComptesAttente.remove(index);
 				index = -1;
-				for(CompteSimple c : lstComptesSpectateur){
-					if(c.getUsername().equals(compteSimple.getUsername())) {
+				for(Compte c : lstComptesSpectateur){
+					if(c.getUsername().equals(compte.getUsername())) {
 						index = lstComptesSpectateur.indexOf(c);
 					}
 				}
@@ -210,17 +208,17 @@ public class WebSocketApplication implements CommandLineRunner {
 				break;
 			default:
 				if(strBonneListe.equals("ARBITRE")){
-					for(CompteSimple c : lstComptesArbitre){
-						if(c.getUsername().equals(compteSimple.getUsername())) {
+					for(Compte c : lstComptesArbitre){
+						if(c.getUsername().equals(compte.getUsername())) {
 							index = lstComptesArbitre.indexOf(c);
 						}
 					}
 					if(index != -1) lstComptesArbitre.remove(index);
-					lstComptesArbitre.add(compteSimple);
+					lstComptesArbitre.add(compte);
 				}
 				else{
-					for(CompteSimple c : lstComptesArbitre){
-						if(c.getUsername().equals(compteSimple.getUsername())) {
+					for(Compte c : lstComptesArbitre){
+						if(c.getUsername().equals(compte.getUsername())) {
 							index = lstComptesArbitre.indexOf(c);
 						}
 					}

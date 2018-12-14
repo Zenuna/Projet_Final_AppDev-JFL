@@ -44,4 +44,8 @@ public class CompteSimple {
     public String getUsername() {
         return username;
     }
+
+    public String getAvatar() {
+        return avatar;
+    }
 }

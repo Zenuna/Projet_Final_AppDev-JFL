@@ -35,10 +35,10 @@ public class ReponseControleur {
     @Autowired
     private GroupeDao groupDao;
 
-    private List<CompteSimple> lstComptesAilleurs = new ArrayList<>();
-    private List<CompteSimple> lstComptesSpectateur = new ArrayList<>();
-    private List<CompteSimple> lstComptesAttente = new ArrayList<>();
-    private List<CompteSimple> lstComptesArbitre = new ArrayList<>();
+    private List<Compte> lstComptesAilleurs = new ArrayList<>();
+    private List<Compte> lstComptesSpectateur = new ArrayList<>();
+    private List<Compte> lstComptesAttente = new ArrayList<>();
+    private List<Compte> lstComptesArbitre = new ArrayList<>();
 
     static public Map<String, String> listeDesConnexions = new HashMap();
 
@@ -93,7 +93,7 @@ public class ReponseControleur {
         CompteSimple compteSimple = new CompteSimple(compte.getUsername(),compte.getAvatar().getAvatar().replaceAll("data:image/jpeg;base64,",""));
 
         //On positionne/repositionne
-        videListe(message.getTexte().trim().toUpperCase(),compteSimple);
+        videListe(message.getTexte().trim().toUpperCase(),compte);
 
         return new Reponse(id++, message.getDe(), message.getTexte(), message.getCreation(), message.getAvatar());
     }
@@ -236,6 +236,18 @@ public class ReponseControleur {
     public String ListeAilleur(Model model) {
         return "AIL"+lstComptesAilleurs.toString();
     }
+    // POUR TROUVER LISTE AILLEURS
+    @RequestMapping(value="/ListeAvatarAilleur", method= RequestMethod.GET)
+    public String ListeAvatarAilleur(Model model) {
+
+        String strAvatarAilleurs = "";
+        for (Compte c : lstComptesAilleurs){
+            strAvatarAilleurs += c.getAvatar().getAvatar()+"-----";
+        }
+        System.out.println(lstComptesAilleurs);
+       // strAvatarAilleurs += compteDao.findById("v1@dojo").get().getAvatar().getAvatar();
+        return strAvatarAilleurs;
+    }
 
     // POUR TROUVER LISTE ARBITRE
     @RequestMapping(value="/ListeArbitre", method= RequestMethod.GET)
@@ -256,9 +268,9 @@ public class ReponseControleur {
 
 
 
-    private void videListe(String strBonneListe, CompteSimple compteSimple){
+    private void videListe(String strBonneListe, Compte compte){
         int index = -1;
-        WebSocketApplication.videListeExtract(strBonneListe, compteSimple, index, lstComptesAttente, lstComptesSpectateur, lstComptesAilleurs, lstComptesArbitre);
+        WebSocketApplication.videListeExtract(strBonneListe, compte, index, lstComptesAttente, lstComptesSpectateur, lstComptesAilleurs, lstComptesArbitre);
     }
     private int[] trouvePtsEtCredits(String username){
         int[] tabPtsCredits = new int[3];
