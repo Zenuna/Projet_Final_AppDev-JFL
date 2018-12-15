@@ -38,10 +38,10 @@ public class ReponseControleur {
     @Autowired
     private GroupeDao groupDao;
 
-    private List<Compte> lstComptesAilleurs = new ArrayList<>();
-    private List<Compte> lstComptesSpectateur = new ArrayList<>();
-    private List<Compte> lstComptesAttente = new ArrayList<>();
-    private List<Compte> lstComptesArbitre = new ArrayList<>();
+    private static List<Compte> lstComptesAilleurs = new ArrayList<>();
+    private static List<Compte> lstComptesSpectateur = new ArrayList<>();
+    private static List<Compte> lstComptesAttente = new ArrayList<>();
+    private static List<Compte> lstComptesArbitre = new ArrayList<>();
 
     static public Map<String, String> listeDesConnexions = new HashMap();
 
@@ -280,7 +280,7 @@ public class ReponseControleur {
 
     private void videListe(String strBonneListe, Compte compte){
         int index = -1;
-        WebSocketApplication.videListeExtract(strBonneListe, compte, index, lstComptesAttente, lstComptesSpectateur, lstComptesAilleurs, lstComptesArbitre);
+        videListeExtract(strBonneListe, compte, index, lstComptesAttente, lstComptesSpectateur, lstComptesAilleurs, lstComptesArbitre);
     }
     private int[] trouvePtsEtCredits(String username){
         int[] tabPtsCredits = new int[3];
@@ -425,6 +425,111 @@ public class ReponseControleur {
             combat = new Combat(0,System.currentTimeMillis(),0,10,compteArbitre,compteBlanc,compteBlanc.getGroupe(),compteRouge.getGroupe(),compteRouge);
         }
         return combat;
+    }
+    public void videListeExtract(String strBonneListe, Compte compte, int index, List<Compte> lstComptesAttenteVar, List<Compte> lstComptesSpectateurVar, List<Compte> lstComptesAilleurVar, List<Compte> lstComptesArbitreVar) {
+        List<Compte> lstComptesAilleurRecu = lstComptesAilleurVar;
+        List<Compte> lstComptesSpectateurRecu = lstComptesSpectateurVar;
+        List<Compte> lstComptesAttenteRecu = lstComptesAttenteVar;
+        List<Compte> lstComptesArbitreRecu = lstComptesArbitreVar;
+        switch(strBonneListe){
+            case "AILLEURS" :
+                for(Compte c : lstComptesAttenteRecu){
+                    if(c.getUsername().equals(compte.getUsername())){
+                        index = lstComptesAttenteRecu.indexOf(c);
+                    }
+
+                }
+                if(index != -1) lstComptesAttenteVar.remove(index);
+                index = -1;
+                for(Compte c : lstComptesSpectateurRecu){
+                    if(c.getUsername().equals(compte.getUsername())) {
+                        index = lstComptesSpectateurRecu.indexOf(c);
+                    }
+                }
+                if(index != -1) lstComptesSpectateurVar.remove(index);
+                lstComptesAilleurVar.add(compte);
+                break;
+            case "ATTENTE":
+                for(Compte c : lstComptesAilleurRecu){
+                    if(c.getUsername().equals(compte.getUsername())) {
+                        index = lstComptesAilleurRecu.indexOf(c);
+                    }
+                }
+                if(index != -1) lstComptesAilleurVar.remove(index);
+                index = -1;
+                for(Compte c : lstComptesSpectateurRecu){
+                    if(c.getUsername().equals(compte.getUsername())) {
+                        index = lstComptesSpectateurRecu.indexOf(c);
+                    }
+                }
+                if(index != -1) lstComptesSpectateurVar.remove(index);
+                lstComptesAttenteVar.add(compte);
+                break;
+            case "SPECTATEUR":
+                for(Compte c : lstComptesAilleurRecu){
+                    if(c.getUsername().equals(compte.getUsername())) {
+                        index = lstComptesAilleurRecu.indexOf(c);
+                    }
+                }
+                if(index != -1) lstComptesAilleurVar.remove(index);
+                index = -1;
+                for(Compte c : lstComptesAttenteRecu){
+                    if(c.getUsername().equals(compte.getUsername())) {
+                        index = lstComptesAttenteRecu.indexOf(c);
+                    }
+                }
+                if(index != -1) lstComptesAttenteVar.remove(index);
+                lstComptesSpectateurVar.add(compte);
+                break;
+            case "PEACE":
+                for(Compte c : lstComptesAilleurRecu){
+                    if(c.getUsername().equals(compte.getUsername())) {
+                        index = lstComptesAilleurRecu.indexOf(c);
+                    }
+                }
+                if(index != -1) lstComptesAilleurVar.remove(index);
+                index = -1;
+                for(Compte c : lstComptesArbitreRecu){
+                    if(c.getUsername().equals(compte.getUsername())) {
+                        index = lstComptesArbitreRecu.indexOf(c);
+                    }
+                }
+                if(index != -1) lstComptesArbitreVar.remove(index);
+                index = -1;
+                for(Compte c : lstComptesAttenteRecu){
+                    if(c.getUsername().equals(compte.getUsername())) {
+                        index = lstComptesAttenteRecu.indexOf(c);
+                    }
+                }
+                if(index != -1) lstComptesAttenteVar.remove(index);
+                index = -1;
+                for(Compte c : lstComptesSpectateurRecu){
+                    if(c.getUsername().equals(compte.getUsername())) {
+                        index = lstComptesSpectateurRecu.indexOf(c);
+                    }
+                }
+                if(index != -1) lstComptesSpectateurVar.remove(index);
+                break;
+            default:
+                if(strBonneListe.equals("ARBITRE")){
+                    for(Compte c : lstComptesArbitreRecu){
+                        if(c.getUsername().equals(compte.getUsername())) {
+                            index = lstComptesArbitreRecu.indexOf(c);
+                        }
+                    }
+                    if(index != -1) lstComptesArbitreVar.remove(index);
+                    lstComptesArbitreVar.add(compte);
+                }
+                else{
+                    for(Compte c : lstComptesArbitreRecu){
+                        if(c.getUsername().equals(compte.getUsername())) {
+                            index = lstComptesArbitreRecu.indexOf(c);
+                        }
+                    }
+                    if(index != -1) lstComptesArbitreVar.remove(index);
+                }
+                break;
+        }
     }
 }
 

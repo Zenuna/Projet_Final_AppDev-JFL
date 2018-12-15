@@ -160,6 +160,10 @@ public class Compte implements UserDetails {
         return avatar;
     }
 
+    public String getAvatarChaine() {
+        return avatar.getAvatar().replaceAll("data:image/jpeg;base64,","");
+    }
+
     public void setAvatar(Avatar avatar) {
         this.avatar = avatar;
     }
@@ -228,6 +232,7 @@ public class Compte implements UserDetails {
                 ",\"avatar\":\"" + avatar.getNom() + "\"" +
                 ",\"role\":\"" + role.getRole() + "\"" +
                 ",\"groupe\":\"" + groupe.getGroupe() + "\"" +
+                ",\"avatarChaine\":\"" + getAvatarChaine() + "\"" +
                 "}";
     }
 }

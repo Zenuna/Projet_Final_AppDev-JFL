@@ -7,6 +7,8 @@ var avatarBlanc;
 var avatarArbitre;
 $(document).ready(function(){
     connexion();
+    refreshListeSpectateur();
+    refreshListeAttente();
 });
 
 function connexion() {
@@ -16,37 +18,8 @@ function connexion() {
 
     stompClient.connect({}, function (frame) {
         stompClient.subscribe('/sujet/radiogroup', function (reponse) {
-            var inc = 0;
-            var texte = JSON.parse(reponse.body).texte;
-            if(texte === "SPECTATEUR"){
-                $.get("/ListeSpectateur", function (data) {
-                    async : false;
-                inc = 0;
-                $.each(JSON.parse(data.substr(3,data.length)), function (index, value){
-                    async : false;
-                    $.get("/TrouverAvatarSupreme/" + value.avatar, function (data) {
-                        async : false;
-                        inc++;
-                        $("#" + "imgSiegeSpec" + inc).attr('src', data);
-                    });
-                });
-            });
-            }
-            else if(texte === "ATTENTE"){
-                $.get("/ListeAttente", function (data) {
-                    async : false;
-                    inc = 0;
-                    $.each(JSON.parse(data.substr(3,data.length)), function (index, value){
-                        async : false;
-                        $.get("/TrouverAvatarSupreme/" + value.avatar, function (data) {
-                            async : false;
-                            inc++;
-                            $("#" + "imgSiegeCombattant" + inc).attr('src', data);
-                        });
-                    });
-                });
-            }
-
+                refreshListeSpectateur();
+                refreshListeAttente();
         });
         stompClient.subscribe('/position/debutCombat', function(reponse){
             var DE = JSON.parse(reponse.body).de;
@@ -177,7 +150,42 @@ function connexion() {
         })
     });
 }
-
+function refreshListeSpectateur(){
+    var inc = 0
+    $.get("/ListeSpectateur", function (data) {
+        async : false;
+        inc = 0;
+        $.each(JSON.parse(data.substr(3,data.length)), function (index, value){
+            async : false;
+            $.get("/TrouverAvatarSupreme/" + value.avatar, function (data) {
+                async : false;
+                inc++;
+                $("#" + "imgSiegeSpec" + inc).attr('src', data);
+            });
+        });
+       for(var i = inc+1; i <= 12; i++){
+            $("#" + "imgSiegeSpec" + i).attr('src', 'images/siege.jpg');
+        }
+    });
+}
+function refreshListeAttente(){
+    var inc = 0
+    $.get("/ListeAttente", function (data) {
+        async : false;
+        inc = 0;
+        $.each(JSON.parse(data.substr(3,data.length)), function (index, value){
+            async : false;
+            $.get("/TrouverAvatarSupreme/" + value.avatar, function (data) {
+                async : false;
+                inc++;
+                $("#" + "imgSiegeCombattant" + inc).attr('src', data);
+            });
+        });
+       for(var i = inc+1; i <= 12; i++){
+            $("#" + "imgSiegeCombattant" + i).attr('src', 'images/siege.jpg');
+        }
+    });
+}
 function afficherReponse(message) {
     $("#reponses").append("<tr style='text-align: center'>"    + "<td><img width=100 height=75 src='" +  message.avatar    + "'/></td>" +
         "<td>Message " + message.type    + " de " + message.de    +  " à " + chaineTemps + "</td>" +
