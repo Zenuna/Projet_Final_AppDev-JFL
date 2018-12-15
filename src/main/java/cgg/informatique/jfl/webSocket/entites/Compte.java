@@ -164,6 +164,7 @@ public class Compte implements UserDetails {
         return avatar.getAvatar().replaceAll("data:image/jpeg;base64,","");
     }
 
+
     public void setAvatar(Avatar avatar) {
         this.avatar = avatar;
     }
@@ -222,6 +223,15 @@ public class Compte implements UserDetails {
 
     public void setEvalues(Set<Examen> evalues) {
         this.evalues = evalues;
+    }
+    public String fixString(){
+        return "{" +
+                "\"courriel\":\"" + username + "\"" +
+                ",\"MdeP\":\"" + password + "\"" +
+                ",\"avatar\":\"" + avatar.getNom() + "\"" +
+                ",\"role\":\"" + role.getRole() + "\"" +
+                ",\"groupe\":\"" + groupe.getGroupe() + "\"" +
+                "}";
     }
 
     @Override

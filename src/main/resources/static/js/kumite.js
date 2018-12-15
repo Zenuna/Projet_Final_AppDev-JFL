@@ -18,136 +18,153 @@ function connexion() {
 
     stompClient.connect({}, function (frame) {
         stompClient.subscribe('/sujet/radiogroup', function (reponse) {
-                refreshListeSpectateur();
-                refreshListeAttente();
+            refreshListeSpectateur();
+            refreshListeAttente();
         });
-        stompClient.subscribe('/position/debutCombat', function(reponse){
-            var DE = JSON.parse(reponse.body).de;
-            var creation = JSON.parse(reponse.body).texte.split("|");
-            var millisecondsToWait = 1500;
-            if(DE === "DEBUTCOMBAT"){
-                for(var i = 0; i<creation.length;i++){
-                    $.ajax({
-                        async: false,
-                        type: "GET",
-                        url:"TrouverAvatar/" + JSON.parse(creation[i]).avatar,
-                        success: [function (repGet) {
-                                if(i === 0){
-                                    if($("#compteCourriel").text() === JSON.parse(creation[i]).courriel){
-                                        $("#positionCombat").text("COMBATTANT ROUGE");
-                                    }
-                                    $("#imgTatami10").attr('src', repGet);
-                                    combattantRouge = JSON.parse(creation[i]).courriel;
-                                    avatarRouge = repGet;
-                                }
-                                else if(i === 1){
-                                    if($("#compteCourriel").text() === JSON.parse(creation[i]).courriel){
-                                        $("#positionCombat").text("COMBATTANT BLANC");
-                                    }
-                                    $("#imgTatami1").attr('src', repGet);
-                                    combattantBlanc = JSON.parse(creation[i]).courriel;
-                                    avatarBlanc = repGet;
-                                }
-                                else{
-                                    if($("#compteCourriel").text() === JSON.parse(creation[i]).courriel){
-                                        $("#positionCombat").text("ARBITRE");
-                                    }
-                                    $("#imgTatamiArbitre").attr('src',repGet);
-                                    arbitre = JSON.parse(creation[i]).courriel;
-                                    avatarArbitre = repGet;
-                                }
-                        }]
+        stompClient.subscribe('/sujet/debutCombat', function (reponse) {
+            refreshListeSpectateur();
+            refreshListeAttente();
+            var creation = JSON.parse(reponse.body).texte.split("-A-");
+            for (var i = 0; i < creation.length; i++) {
+                $.ajax({
+                    async: false,
+                    type: "GET",
+                    url: "TrouverAvatarSupreme/" + JSON.parse(creation[i]).avatar,
+                    success: [function (repGet) {
+                        if (i === 0) {
+                            $("#imgTatami10").attr('src', repGet);
+                            combattantRouge = JSON.parse(creation[i]).courriel;
+                            avatarRouge = repGet;
+                        }
+                        else if (i === 1) {
+                            $("#imgTatami1").attr('src', repGet);
+                            combattantBlanc = JSON.parse(creation[i]).courriel;
+                            avatarBlanc = repGet;
+                        }
+                        else {
+                            $("#imgTatamiArbitre").attr('src', repGet);
+                            arbitre = JSON.parse(creation[i]).courriel;
+                            avatarArbitre = repGet;
+                        }
+                    }]
 
-                    });
-                }
-                $("#paroleArbitre").text("Rei!");
-                setTimeout(function() {
-                    $("#imgTatami1").attr('src','images/tatami.jpg');
-                    $("#imgTatami10").attr('src','images/tatami.jpg');
-                    $("#imgTatami3").attr('src',avatarBlanc);
-                    $("#imgTatami8").attr('src',avatarRouge);
-                    //$("#imgTatami3").css('transition-property','transform');
-                    //$("#imgTatami3").css('transition-duration''0.5s');
-                    $("#imgTatami3").css('transform',"rotate(45deg)");
-                    $("#imgTatami8").css('transform',"rotate(-45deg)");
-                    setTimeout(function(){
-                        $("#imgTatami3").css('transform',"rotate(0deg)");
-                        $("#imgTatami8").css('transform',"rotate(0deg)");
-                        $("#paroleArbitre").text("Hajime!");
-                        setTimeout(function(){
-                            stompClient.send("/app/debutCombat", {}, JSON.stringify({
-                                'texte': "ONVEUTDESCHIFFRES",
-                                'creation': "",
-                                'de': "",
-                                'avatar': "",
-                                'type': ""
-                            }));
-                        },millisecondsToWait)
-                    },millisecondsToWait)
-                }, millisecondsToWait);
+                });
             }
-            else if(DE === "RECEVOIRCHIFFRE"){
+        });
+        stompClient.subscribe('/sujet/envoyerChiffre', function (reponse) {
+            var chainon = JSON.parse(reponse.body).texte.split("-A-");
+            for (var i = 0; i < chainon.length; i++) {
+                $.ajax({
+                    async: false,
+                    type: "GET",
+                    url: "TrouverAvatarSupreme/" + JSON.parse(chainon[i]).avatar,
+                    success: [function (repGet) {
+                        if (i === 0) {
+                            combattantRouge = JSON.parse(chainon[i]).courriel;
+                            avatarRouge = repGet;
+                        }
+                        else if (i === 1) {
+                            combattantBlanc = JSON.parse(chainon[i]).courriel;
+                            avatarBlanc = repGet;
+                        }
+                        else {
+                            arbitre = JSON.parse(chainon[i]).courriel;
+                            avatarArbitre = repGet;
+                        }
+                    }]
+                })
+            }
+
+            var creation = JSON.parse(reponse.body).avatar.split("|");
+            var millisecondsToWait = 1000;
+            $("#paroleArbitre").text("Rei!");
+            setTimeout(function(){
+
+            $("#imgTatami1").attr('src', 'images/tatami.jpg');
+            $("#imgTatami10").attr('src', 'images/tatami.jpg');
+            $("#imgTatami3").attr('src', avatarBlanc);
+            $("#imgTatami8").attr('src', avatarRouge);
+            $("#imgTatami3").css('transform', "rotate(45deg)");
+            $("#imgTatami8").css('transform', "rotate(-45deg)");
+            setTimeout(function(){
+                $("#imgTatami3").css('transform', "rotate(0deg)");
+                $("#imgTatami8").css('transform', "rotate(0deg)")
+                $("#paroleArbitre").text("Hajime!");
                 var randomBlanc = creation[0];
                 var randomRouge = creation[1];
-                setTimeout(function(){
+                setTimeout(function () {
                     $("#paroleBlanc").text(MainJouee(randomBlanc));
                     $("#paroleRouge").text(MainJouee(randomRouge));
                     $("#paroleArbitre").text("");
-                    setTimeout(function(){
-                        var quiAGagner = quiGagne(randomBlanc,randomRouge);
-                        if(quiAGagner === "NULLE"){
+                    setTimeout(function () {
+                        var quiAGagner = quiGagne(randomBlanc, randomRouge);
+                        if (quiAGagner === "NULLE") {
                             $("#paroleArbitre").text("PATATE!");
-                            $("#imgVictoireRouge").attr('hidden','')
-                            $("#imgVictoireBlanc").attr('hidden','')
+                            $("#imgVictoireRouge").attr('hidden', '');
+                            $("#imgVictoireBlanc").attr('hidden', '')
                         }
-                        else{
-                            if(quiAGagner === "ROUGE"){
-                                $("#imgVictoireRouge").attr('hidden','')
+                        else {
+                            if (quiAGagner === "ROUGE") {
+                                $("#imgVictoireRouge").attr('hidden', '')
                             }
-                            else{
-                                $("#imgVictoireBlanc").attr('hidden','')
+                            else {
+                                $("#imgVictoireBlanc").attr('hidden', '')
                             }
                             $("#paroleArbitre").text("IPPON!");
                         }
-                        $("#imgTatami3").css('transform',"rotate(45deg)");
-                        $("#imgTatami8").css('transform',"rotate(-45deg)");
-                        setTimeout(function(){
-                            $("#imgTatami1").attr('src',avatarBlanc);
-                            $("#imgTatami10").attr('src',avatarRouge);
-                            $("#imgTatami3").attr('src','images/tatami.jpg');
-                            $("#imgTatami8").attr('src','images/tatami.jpg');
-                            $("#imgTatami3").css('transform',"rotate(0deg)");
-                            $("#imgTatami8").css('transform',"rotate(0deg)");
-                            $("#imgVictoireBlanc").attr('hidden','hidden');
-                            $("#imgVictoireRouge").attr('hidden','hidden');
-                            $("#paroleRouge").text("");
-                            $("#paroleBlanc").text("");
-                            $("#paroleArbitre").text("");
-                            stompClient.send("/app/finCombat", {}, JSON.stringify({
-                                'texte': "FINCOMBAT",
-                                'creation': "",
-                                'de': "",
-                                'avatar': "",
-                                'type': ""
-                            }));
-                            combattantRouge = "";
-                            combattantBlanc = "";
-                            arbitre = "";
-                            avatarRouge = "";
-                            avatarBlanc = "";
-                            avatarArbitre = "";
-                            $("#positionCombat").text("");
-                            $("#imgTatamiArbitre").attr('src','images/tatami.jpg');
-                            for(var i = 0; i <=10;i++){
-                                $("#imgTatami"+i).attr('src','images/tatami.jpg');
-                            }
-                        },millisecondsToWait)
+                        $("#imgTatami3").css('transform', "rotate(45deg)");
+                        $("#imgTatami8").css('transform', "rotate(-45deg)");
 
                     },millisecondsToWait)
-                },millisecondsToWait)
-            }
+                },millisecondsToWait);
 
-        })
+            },millisecondsToWait)
+            }, millisecondsToWait)
+        });
+        stompClient.subscribe('/sujet/finCombat', function (reponse) {
+            var millisecondsToWait = 1000;
+            setTimeout(function(){
+                $("#imgTatami3").css('transform', "rotate(0deg)");
+                $("#imgTatami8").css('transform', "rotate(0deg)");
+
+                $("#imgTatami1").attr('src', avatarBlanc);
+                $("#imgTatami10").attr('src', avatarRouge);
+                $("#imgTatami3").attr('src', 'images/tatami.jpg');
+                $("#imgTatami8").attr('src', 'images/tatami.jpg');
+
+
+                setTimeout(function(){
+                    $("#imgTatamiArbitre").attr('src', 'images/tatami.jpg');
+                    for (var i = 0; i <= 10; i++) {
+                        $("#imgTatami" + i).attr('src', 'images/tatami.jpg');
+                    }
+                    refreshListeAttente()
+                    refreshListeSpectateur()
+                    $("#imgVictoireBlanc").attr('hidden', 'hidden');
+                    $("#imgVictoireRouge").attr('hidden', 'hidden');
+                    $("#paroleRouge").text("");
+                    $("#paroleBlanc").text("");
+                    $("#paroleArbitre").text("");
+                    /*stompClient.send("/app/finCombat", {}, JSON.stringify({
+                        'texte': "FINCOMBAT",
+                        'creation': "",
+                        'de': "",
+                        'avatar': "",
+                        'type': ""
+                    }));*/
+                    combattantRouge = "";
+                    combattantBlanc = "";
+                    arbitre = "";
+                    avatarRouge = "";
+                    avatarBlanc = "";
+                    avatarArbitre = "";
+                    $("#positionCombat").text("");
+
+                }, millisecondsToWait)
+
+
+            },millisecondsToWait)
+        });
     });
 }
 function refreshListeSpectateur(){
@@ -163,7 +180,7 @@ function refreshListeSpectateur(){
                 $("#" + "imgSiegeSpec" + inc).attr('src', data);
             });
         });
-       for(var i = inc+1; i <= 12; i++){
+        for(var i = inc+1; i <= 12; i++){
             $("#" + "imgSiegeSpec" + i).attr('src', 'images/siege.jpg');
         }
     });
@@ -181,7 +198,7 @@ function refreshListeAttente(){
                 $("#" + "imgSiegeCombattant" + inc).attr('src', data);
             });
         });
-       for(var i = inc+1; i <= 12; i++){
+        for(var i = inc+1; i <= 12; i++){
             $("#" + "imgSiegeCombattant" + i).attr('src', 'images/siege.jpg');
         }
     });

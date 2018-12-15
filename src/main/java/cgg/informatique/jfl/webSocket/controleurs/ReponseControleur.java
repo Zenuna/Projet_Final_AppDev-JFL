@@ -7,6 +7,9 @@ import cgg.informatique.jfl.webSocket.Reponse;
 import cgg.informatique.jfl.webSocket.WebSocketApplication;
 import cgg.informatique.jfl.webSocket.dao.*;
 import cgg.informatique.jfl.webSocket.entites.*;
+import com.fasterxml.jackson.databind.ObjectMapper;
+import org.codehaus.jackson.map.util.JSONPObject;
+import org.json.JSONObject;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.messaging.handler.annotation.MessageMapping;
 import org.springframework.messaging.handler.annotation.SendTo;
@@ -43,6 +46,10 @@ public class ReponseControleur {
     private static List<Compte> lstComptesAttente = new ArrayList<>();
     private static List<Compte> lstComptesArbitre = new ArrayList<>();
 
+    private Compte combattantRouge = new Compte();
+    private Compte combattantBlanc = new Compte();
+    private Compte arbitre = new Compte();
+
     static public Map<String, String> listeDesConnexions = new HashMap();
 
 
@@ -58,6 +65,17 @@ public class ReponseControleur {
         return avatarDao.findByNom(nom).getAvatar();
     }
 
+    @CrossOrigin()
+    @MessageMapping("/finCombat")
+    @SendTo("/sujet/finCombat")
+    public Reponse finCombat(Message message) throws Exception {
+        //System.err.println(message.toString());
+        // GÉRER SI ILS ONT QUITTÉS LA PAGE !!!
+        lstComptesAttente.add(combattantRouge);
+        lstComptesAttente.add(combattantBlanc);
+        lstComptesArbitre.add(arbitre);
+        return new Reponse(id++, message.getDe(), message.getTexte(), message.getCreation(), message.getAvatar());
+    }
 
     @CrossOrigin()
     @MessageMapping("/messageprive")
@@ -76,24 +94,52 @@ public class ReponseControleur {
     }
 
     @CrossOrigin()
-    @MessageMapping("/messagepublique")
-    @SendTo("/sujet/publique")
-    public Reponse publique (Message message) throws Exception{
-        Boolean booValide = false;
-        for(String keys : listeDesConnexions.keySet()){
-            if(listeDesConnexions.get(keys).equals(message.getSessionRest()) && !compteDao.findById(keys).get().getRole().getRole().equals("NOUVEAU")){
-                booValide = true;
+    @MessageMapping("/debutCombat")
+    @SendTo("/sujet/debutCombat")
+    public Reponse debutCombat(Message message) throws Exception {
+        //System.err.println(message.toString());
+
+        String[] strCombat = message.getTexte().split("-A-");
+        for(int i = 0;i<strCombat.length;i++){
+            JSONObject json = new JSONObject(strCombat[i]);
+            if(strCombat.length-1 != i){
+                for(Compte c:lstComptesAttente){
+                    if(c.getUsername().equals(json.getString("courriel"))){
+                        if(i == 0){
+
+                            combattantRouge = c;
+                        }
+                        else {
+                            combattantBlanc = c;
+                        }
+                        System.out.println(c.getUsername());
+
+                    }
+                }
             }
-        }
-        if(booValide){
-            return new Reponse(id++, message.getDe(), message.getTexte(), message.getCreation(), message.getAvatar());
-        }
-        else{
-            return new Reponse(id++, message.getDe(), "Erreur (Message publique) : Vous n'avez pas l'authorité pour envoyer des messages publiques!", message.getCreation(), message.getAvatar());
-        }
+            else{
+                for(Compte c:lstComptesArbitre){
+                    if(c.getUsername().equals(json.getString("courriel"))){
+                        arbitre = c;
 
+                        System.out.println(c.getUsername());
+                    }
+                }
+            }
+            lstComptesAttente.remove(combattantBlanc);
+            lstComptesAttente.remove(combattantRouge);
+
+            lstComptesArbitre.remove(arbitre);
+        }
+        return new Reponse(id++, message.getDe(), message.getTexte(), message.getCreation(), message.getAvatar());
     }
-
+    @CrossOrigin()
+    @MessageMapping("/envoyerChiffre")
+    @SendTo("/sujet/envoyerChiffre")
+    public Reponse envoyerChiffre(Message message) throws Exception {
+        //System.err.println(message.toString());
+        return new Reponse(id++, message.getDe(), message.getTexte(), message.getCreation(), message.getAvatar());
+    }
     // POUR POSITION
     @CrossOrigin()
     @MessageMapping("/listePosition")
@@ -108,156 +154,12 @@ public class ReponseControleur {
         return new Reponse(id++, message.getDe(), message.getTexte(), message.getCreation(), message.getAvatar());
     }
 
-    // POUR btnCombat
-    // TRUE  = Rouge gagne
-    // FALSE  = Blanc gagne
-    // NULLE = Nulle
-    @CrossOrigin()
-    @MessageMapping("/Combat")
-    @SendTo("/sujet/Combat")
-    public Reponse combat(Message message) throws Exception{
-        //On récupère le combattant actuel et place les autres
-        Compte compteRouge = compteDao.findById(message.getDe()).get();
-        Compte compteBlanc = compteDao.findById(s1).get();
-        Compte compteArbitre = compteDao.findById(v1).get();
-        Combat combat = new Combat();
-
-        //Vérif
-        if(compteRouge.getUsername().equals(compteArbitre.getUsername())){
-            System.out.println("COMBAT : Le combattant rouge ne peut pas être aussi l'arbitre!");
-            return new Reponse(id++, message.getDe(), "Le combattant rouge ne peut pas être aussi l'arbitre!", message.getCreation(), message.getAvatar());
-        }
-        else if(compteRouge.getUsername().equals(compteBlanc.getUsername())){
-            System.out.println("COMBAT : Le combattant rouge ne peut pas être aussi le combattant blanc!");
-            return new Reponse(id++, message.getDe(), "Le combattant rouge ne peut pas être aussi le combattant blanc!", message.getCreation(), message.getAvatar());
-        }
-
-        combat = resultatCombat(compteRouge, compteBlanc, compteArbitre, combat, message.getTexte().trim().toUpperCase());
-        if(combat.getDate() != null) combatDao.saveAndFlush(combat);
-
-        System.out.println("COMBAT : OK");
-        return new Reponse(id++, message.getDe(), "OK", message.getCreation(), message.getAvatar());
-    }
-
-    // POUR btnArbitre
-    // TRUE  = Rouge gagne
-    // FALSE  = Blanc gagne
-    // NULLE = Nulle
-    @CrossOrigin()
-    @MessageMapping("/Arbitre")
-    @SendTo("/sujet/Arbitre")
-    public Reponse arbitre(Message message) throws Exception{
-        //On récupère l'arbitre actuel et place les autres
-        Compte compteArbitre = compteDao.findById(message.getDe()).get();
-        Compte compteRouge =  compteDao.findById(v1).get();
-        Compte compteBlanc =compteDao.findById(s1).get();
-        Combat combat = new Combat();
-        //Vérif
-        if(compteArbitre.getUsername().equals(compteRouge.getUsername())){
-            System.out.println("ARBITRE : L'arbitre ne peut pas être aussi le combattant rouge!");
-            return new Reponse(id++, message.getDe(), "L'arbitre ne peut pas être aussi le combattant rouge!", message.getCreation(), message.getAvatar());
-        }
-        else if(compteArbitre.getUsername().equals(compteBlanc.getUsername())){
-            System.out.println("ARBITRE : L'arbitre ne peut pas être aussi le combattant blanc!");
-            return new Reponse(id++, message.getDe(), "L'arbitre ne peut pas être aussi le combattant blanc!", message.getCreation(), message.getAvatar());
-        }
-        combat = resultatCombat(compteRouge, compteBlanc, compteArbitre, combat, message.getTexte().trim().toUpperCase());
-        if(combat.getDate() != null) combatDao.saveAndFlush(combat);
-
-        System.out.println("ARBITRE : OK");
-        return new Reponse(id++, message.getDe(), "OK", message.getCreation(), message.getAvatar());
-    }
-
-    // POUR btnArbitre
-    // TRUE  = Examen passé
-    // FALSE  = Examen échoué
-    @CrossOrigin()
-    @MessageMapping("/Examen")
-    @SendTo("/sujet/Examen")
-    public Reponse examen(Message message) throws Exception{
-        //On récupère l'utilisateur evaluer
-        Compte compteEvaluer =  compteDao.findById(message.getDe()).get();
-        Compte compteEvaluateur = compteDao.findById(v1).get();
-
-        int[] tabPtsCredits = trouvePtsEtCredits(compteEvaluer.getUsername());
-        String strTexte = message.getTexte().trim().toUpperCase();
-        Examen examen= new Examen();
-
-        //Vérif
-        if(tabPtsCredits[0] < 100){
-            System.out.println("EXAMEN : Vous n'avez pas les 100 points nécessaires");
-            return new Reponse(id++, message.getDe(), "Vous n'avez pas les 100 points nécessaires", message.getCreation(), message.getAvatar());
-        }
-        if(tabPtsCredits[1]<10){
-            System.out.println("EXAMEN : Vous n'avaz pas les 10 crédits nécessaires");
-            return new Reponse(id++, message.getDe(), "Vous n'avaz pas les 10 crédits nécessaires", message.getCreation(), message.getAvatar());
-        }
-        if(compteEvaluer.getGroupe().getId()>=7){
-            System.out.println("EXAMEN : Vous avez déjà la plus haute ceinture accessible");
-            return new Reponse(id++, message.getDe(), "Vous avez déjà la plus haute ceinture accessible", message.getCreation(), message.getAvatar());
-        }
-
-        if(strTexte.equals("TRUE")){
-            examen = new Examen(System.currentTimeMillis(),true,compteEvaluer.getGroupe(),compteEvaluateur,compteEvaluer);
-            compteEvaluer.setGroupe(groupDao.findById(compteEvaluer.getGroupe().getId()+1).get());
-            compteDao.saveAndFlush(compteEvaluer);
-        }
-        else if(strTexte.equals("FALSE")) {
-            examen = new Examen(System.currentTimeMillis(),false,compteEvaluer.getGroupe(),compteEvaluateur,compteEvaluer);
-        }
-
-        if(examen.getDate() != null) examenDao.saveAndFlush(examen);
-
-        System.out.println("EXAMEN : OK");
-        return new Reponse(id++, message.getDe(), "OK", message.getCreation(), message.getAvatar());
-    }
-
-    // POUR btnAncien
-    @CrossOrigin()
-    @MessageMapping("/Ancien")
-    @SendTo("/sujet/Ancien")
-    public Reponse ancien(Message message) throws Exception{
-        Compte compte =  compteDao.findById(message.getDe()).get();
-
-        if(compte.getRole().getId()>=2){
-            System.out.println("ANCIEN : Vous êtes déjà ancien ou plus élevé");
-            return new Reponse(id++, message.getDe(), "Vous êtes déjà ancien ou plus élevé", message.getCreation(), message.getAvatar());
-        }
-        int[] tabPtsCredits = trouvePtsEtCredits(compte.getUsername());
-        if(tabPtsCredits[1]<10){
-            System.out.println("ANCIEN : Vous n'avaz pas les 10 crédits nécessaires");
-            return new Reponse(id++, message.getDe(), "Vous n'avaz pas les 10 crédits nécessaires", message.getCreation(), message.getAvatar());
-        }
-        if(tabPtsCredits[2]<30){
-            System.out.println("ANCIEN : Vous n'avaz pas arbitrer 30 combats");
-            return new Reponse(id++, message.getDe(), "Vous n'avaz pas arbitrer 30 combats", message.getCreation(), message.getAvatar());
-        }
-        Role role = roleDao.findById(2).get();
-        compte.setRole(role);
-        compte.setAnciendepuis(System.currentTimeMillis());
-        compteDao.saveAndFlush(compte);
-
-        System.out.println("OK");
-        return new Reponse(id++, message.getDe(), "OK", message.getCreation(), message.getAvatar());
-    }
 
     // POUR TROUVER LISTE AILLEURS
     @RequestMapping(value="/ListeAilleur", method= RequestMethod.GET)
     public String ListeAilleur(Model model) {
         return "AIL"+lstComptesAilleurs.toString();
     }
-//    // POUR TROUVER LISTE AILLEURS
-//    @RequestMapping(value="/ListeAvatarAilleur", method= RequestMethod.GET)
-//    public String ListeAvatarAilleur(Model model) {
-//
-//        String strAvatarAilleurs = "";
-//        for (Compte c : lstComptesAilleurs){
-//            strAvatarAilleurs += c.getAvatar().getAvatar()+"-----";
-//        }
-//        System.out.println(lstComptesAilleurs);
-//       // strAvatarAilleurs += compteDao.findById("v1@dojo").get().getAvatar().getAvatar();
-//        return strAvatarAilleurs;
-//    }
 
     // POUR TROUVER LISTE ARBITRE
     @RequestMapping(value="/ListeArbitre", method= RequestMethod.GET)
@@ -532,4 +434,139 @@ public class ReponseControleur {
         }
     }
 }
+/*
 
+
+    // POUR btnCombat
+    // TRUE  = Rouge gagne
+    // FALSE  = Blanc gagne
+    // NULLE = Nulle
+    @CrossOrigin()
+    @MessageMapping("/Combat")
+    @SendTo("/sujet/Combat")
+    public Reponse combat(Message message) throws Exception{
+        //On récupère le combattant actuel et place les autres
+        Compte compteRouge = compteDao.findById(message.getDe()).get();
+        Compte compteBlanc = compteDao.findById(s1).get();
+        Compte compteArbitre = compteDao.findById(v1).get();
+        Combat combat = new Combat();
+
+        //Vérif
+        if(compteRouge.getUsername().equals(compteArbitre.getUsername())){
+            System.out.println("COMBAT : Le combattant rouge ne peut pas être aussi l'arbitre!");
+            return new Reponse(id++, message.getDe(), "Le combattant rouge ne peut pas être aussi l'arbitre!", message.getCreation(), message.getAvatar());
+        }
+        else if(compteRouge.getUsername().equals(compteBlanc.getUsername())){
+            System.out.println("COMBAT : Le combattant rouge ne peut pas être aussi le combattant blanc!");
+            return new Reponse(id++, message.getDe(), "Le combattant rouge ne peut pas être aussi le combattant blanc!", message.getCreation(), message.getAvatar());
+        }
+
+        combat = resultatCombat(compteRouge, compteBlanc, compteArbitre, combat, message.getTexte().trim().toUpperCase());
+        if(combat.getDate() != null) combatDao.saveAndFlush(combat);
+
+        System.out.println("COMBAT : OK");
+        return new Reponse(id++, message.getDe(), "OK", message.getCreation(), message.getAvatar());
+    }
+
+    // POUR btnArbitre
+    // TRUE  = Rouge gagne
+    // FALSE  = Blanc gagne
+    // NULLE = Nulle
+    @CrossOrigin()
+    @MessageMapping("/Arbitre")
+    @SendTo("/sujet/Arbitre")
+    public Reponse arbitre(Message message) throws Exception{
+        //On récupère l'arbitre actuel et place les autres
+        Compte compteArbitre = compteDao.findById(message.getDe()).get();
+        Compte compteRouge =  compteDao.findById(v1).get();
+        Compte compteBlanc =compteDao.findById(s1).get();
+        Combat combat = new Combat();
+        //Vérif
+        if(compteArbitre.getUsername().equals(compteRouge.getUsername())){
+            System.out.println("ARBITRE : L'arbitre ne peut pas être aussi le combattant rouge!");
+            return new Reponse(id++, message.getDe(), "L'arbitre ne peut pas être aussi le combattant rouge!", message.getCreation(), message.getAvatar());
+        }
+        else if(compteArbitre.getUsername().equals(compteBlanc.getUsername())){
+            System.out.println("ARBITRE : L'arbitre ne peut pas être aussi le combattant blanc!");
+            return new Reponse(id++, message.getDe(), "L'arbitre ne peut pas être aussi le combattant blanc!", message.getCreation(), message.getAvatar());
+        }
+        combat = resultatCombat(compteRouge, compteBlanc, compteArbitre, combat, message.getTexte().trim().toUpperCase());
+        if(combat.getDate() != null) combatDao.saveAndFlush(combat);
+
+        System.out.println("ARBITRE : OK");
+        return new Reponse(id++, message.getDe(), "OK", message.getCreation(), message.getAvatar());
+    }
+
+    // POUR btnArbitre
+    // TRUE  = Examen passé
+    // FALSE  = Examen échoué
+    @CrossOrigin()
+    @MessageMapping("/Examen")
+    @SendTo("/sujet/Examen")
+    public Reponse examen(Message message) throws Exception{
+        //On récupère l'utilisateur evaluer
+        Compte compteEvaluer =  compteDao.findById(message.getDe()).get();
+        Compte compteEvaluateur = compteDao.findById(v1).get();
+
+        int[] tabPtsCredits = trouvePtsEtCredits(compteEvaluer.getUsername());
+        String strTexte = message.getTexte().trim().toUpperCase();
+        Examen examen= new Examen();
+
+        //Vérif
+        if(tabPtsCredits[0] < 100){
+            System.out.println("EXAMEN : Vous n'avez pas les 100 points nécessaires");
+            return new Reponse(id++, message.getDe(), "Vous n'avez pas les 100 points nécessaires", message.getCreation(), message.getAvatar());
+        }
+        if(tabPtsCredits[1]<10){
+            System.out.println("EXAMEN : Vous n'avaz pas les 10 crédits nécessaires");
+            return new Reponse(id++, message.getDe(), "Vous n'avaz pas les 10 crédits nécessaires", message.getCreation(), message.getAvatar());
+        }
+        if(compteEvaluer.getGroupe().getId()>=7){
+            System.out.println("EXAMEN : Vous avez déjà la plus haute ceinture accessible");
+            return new Reponse(id++, message.getDe(), "Vous avez déjà la plus haute ceinture accessible", message.getCreation(), message.getAvatar());
+        }
+
+        if(strTexte.equals("TRUE")){
+            examen = new Examen(System.currentTimeMillis(),true,compteEvaluer.getGroupe(),compteEvaluateur,compteEvaluer);
+            compteEvaluer.setGroupe(groupDao.findById(compteEvaluer.getGroupe().getId()+1).get());
+            compteDao.saveAndFlush(compteEvaluer);
+        }
+        else if(strTexte.equals("FALSE")) {
+            examen = new Examen(System.currentTimeMillis(),false,compteEvaluer.getGroupe(),compteEvaluateur,compteEvaluer);
+        }
+
+        if(examen.getDate() != null) examenDao.saveAndFlush(examen);
+
+        System.out.println("EXAMEN : OK");
+        return new Reponse(id++, message.getDe(), "OK", message.getCreation(), message.getAvatar());
+    }
+
+    // POUR btnAncien
+    @CrossOrigin()
+    @MessageMapping("/Ancien")
+    @SendTo("/sujet/Ancien")
+    public Reponse ancien(Message message) throws Exception{
+        Compte compte =  compteDao.findById(message.getDe()).get();
+
+        if(compte.getRole().getId()>=2){
+            System.out.println("ANCIEN : Vous êtes déjà ancien ou plus élevé");
+            return new Reponse(id++, message.getDe(), "Vous êtes déjà ancien ou plus élevé", message.getCreation(), message.getAvatar());
+        }
+        int[] tabPtsCredits = trouvePtsEtCredits(compte.getUsername());
+        if(tabPtsCredits[1]<10){
+            System.out.println("ANCIEN : Vous n'avaz pas les 10 crédits nécessaires");
+            return new Reponse(id++, message.getDe(), "Vous n'avaz pas les 10 crédits nécessaires", message.getCreation(), message.getAvatar());
+        }
+        if(tabPtsCredits[2]<30){
+            System.out.println("ANCIEN : Vous n'avaz pas arbitrer 30 combats");
+            return new Reponse(id++, message.getDe(), "Vous n'avaz pas arbitrer 30 combats", message.getCreation(), message.getAvatar());
+        }
+        Role role = roleDao.findById(2).get();
+        compte.setRole(role);
+        compte.setAnciendepuis(System.currentTimeMillis());
+        compteDao.saveAndFlush(compte);
+
+        System.out.println("OK");
+        return new Reponse(id++, message.getDe(), "OK", message.getCreation(), message.getAvatar());
+    }
+ */
