@@ -162,7 +162,7 @@ public class WebSocketApplication implements CommandLineRunner {
         int trouverPlusProche = Integer.MAX_VALUE;
         for( int i = 0; i < lstComptesAttente.size() && !blnTrouver;i++){
             Compte veutCombattre = lstComptesAttente.get(i);
-            if(veutCombattre != combattantRouge && veutCombattre.getGroupe().equals(combattantRouge.getGroupe())){
+            if(veutCombattre != combattantRouge && veutCombattre.getGroupe().equals(combattantRouge.getGroupe()) && !veutCombattre.getUsername().equals(arbitre.getUsername())){
                 combattantBlanc = veutCombattre;
                 blnTrouver = true;
             }
@@ -187,7 +187,7 @@ public class WebSocketApplication implements CommandLineRunner {
             if(!c.getUsername().equals(combattantBlanc.getUsername()) && !c.getUsername().equals(combattantRouge.getUsername())) lstCompteArbtireVerifier.add(c);
         }
         Random rand = new Random();
-        if(lstCompteArbtireVerifier.size()>0) arbitre = lstComptesArbitre.get(rand.nextInt(lstCompteArbtireVerifier.size()));
+        if(lstCompteArbtireVerifier.size()>0) arbitre = lstCompteArbtireVerifier.get(rand.nextInt(lstCompteArbtireVerifier.size()));
         else arbitre = null;
     }
 

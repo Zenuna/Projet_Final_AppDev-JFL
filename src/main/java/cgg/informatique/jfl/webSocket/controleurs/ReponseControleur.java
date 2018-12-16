@@ -30,9 +30,9 @@ public class ReponseControleur {
     private static List<Compte> lstComptesAttente = new ArrayList<>();
     private static List<Compte> lstComptesArbitre = new ArrayList<>();
 
-    private Compte combattantRouge = new Compte();
-    private Compte combattantBlanc = new Compte();
-    private Compte arbitre = new Compte();
+    private Compte combattantRouge = null;
+    private Compte combattantBlanc = null;
+    private Compte arbitre = null;
 
     static public Map<String, String> listeDesConnexions = new HashMap();
 
@@ -42,8 +42,10 @@ public class ReponseControleur {
     private boolean blnRetirerCombattantBlanc = false;
     private boolean blnRetirerCombattantRouge = false;
     private boolean blnRetirerArbitre = false;
-
-
+    private boolean blnArbitreEtaitAttente = false;
+    private boolean blnArbitreEtaitSpectateur = false;
+    private boolean blnCombattantRougeEtaitArbitre = false;
+    private boolean blnCombattantBlancEtaitArbitre = false;
     // POUR TROUVER AVATAR
     @RequestMapping(value="/TrouverAvatarSupreme/{nom}", method= RequestMethod.GET)
     public String avatar(@PathVariable String nom) {
@@ -66,6 +68,7 @@ public class ReponseControleur {
     @MessageMapping("/debutCombat")
     @SendTo("/sujet/debutCombat")
     public Reponse debutCombat(Message message) throws Exception {
+        System.out.println("DEBUT COMBAT");
         //System.err.println(message.toString());
 
         String[] strCombat = message.getTexte().split("-A-");
@@ -84,6 +87,12 @@ public class ReponseControleur {
 
                     }
                 }
+                for(Compte c:lstComptesArbitre){
+                    if(c.getUsername().equals(json.getString("courriel"))){
+                        if(i == 0) blnCombattantRougeEtaitArbitre = true;
+                        else blnCombattantBlancEtaitArbitre = true;
+                    }
+                }
             }
             else{
                 for(Compte c:lstComptesArbitre){
@@ -91,11 +100,26 @@ public class ReponseControleur {
                         arbitre = c;
                     }
                 }
+                for(Compte c:lstComptesAttente){
+                    if(c.getUsername().equals(json.getString("courriel"))){
+                        blnArbitreEtaitAttente = true;
+                    }
+                }
+                for(Compte c:lstComptesSpectateur){
+                    if(c.getUsername().equals(json.getString("courriel"))){
+                        blnArbitreEtaitSpectateur = true;
+                    }
+                }
             }
-            lstComptesAttente.remove(combattantBlanc);
-            lstComptesAttente.remove(combattantRouge);
-            lstComptesArbitre.remove(arbitre);
         }
+
+        if (blnArbitreEtaitSpectateur) lstComptesSpectateur.remove(arbitre);
+        if( blnArbitreEtaitAttente) lstComptesAttente.remove(arbitre);
+        if( blnCombattantBlancEtaitArbitre) lstComptesArbitre.remove(combattantBlanc);
+        if( blnCombattantRougeEtaitArbitre) lstComptesArbitre.remove(combattantRouge);
+        lstComptesAttente.remove(combattantBlanc);
+        lstComptesAttente.remove(combattantRouge);
+        lstComptesArbitre.remove(arbitre);
         return new Reponse(id++, message.getDe(), message.getTexte(), message.getCreation(), message.getAvatar());
     }
 
@@ -112,9 +136,26 @@ public class ReponseControleur {
     @MessageMapping("/finCombat")
     @SendTo("/sujet/finCombat")
     public Reponse finCombat(Message message) throws Exception {
-        if(!blnRetirerCombattantRouge) lstComptesAttente.add(combattantRouge);
-        if(!blnRetirerCombattantBlanc) lstComptesAttente.add(combattantBlanc);
-        if(blnRetirerArbitre) lstComptesArbitre.add(arbitre);
+        if(!blnRetirerCombattantRouge) {
+            lstComptesAttente.add(combattantRouge);
+            if( blnCombattantRougeEtaitArbitre) lstComptesArbitre.add(combattantRouge);
+        }
+        if(!blnRetirerCombattantBlanc) {
+            lstComptesAttente.add(combattantBlanc);
+            if( blnCombattantBlancEtaitArbitre) lstComptesArbitre.add(combattantBlanc);
+        }
+        if(!blnRetirerArbitre) {
+            lstComptesArbitre.add(arbitre);
+            if (blnArbitreEtaitSpectateur) lstComptesSpectateur.add(arbitre);
+            if( blnArbitreEtaitAttente) lstComptesAttente.add(arbitre);
+        }
+        blnRetirerArbitre = false;
+        blnRetirerCombattantBlanc = false;
+        blnRetirerCombattantRouge = false;
+        blnArbitreEtaitSpectateur = false;
+        blnArbitreEtaitAttente = false;
+        blnCombattantBlancEtaitArbitre = false;
+        blnCombattantRougeEtaitArbitre = false;
         return new Reponse(id++, message.getDe(), message.getTexte(), message.getCreation(), message.getAvatar());
     }
 
@@ -148,6 +189,20 @@ public class ReponseControleur {
         List<Compte> lstComptesArbitreRecu = lstComptesArbitreVar;
         switch(strBonneListe){
             case "AILLEURS" :
+                if(arbitre != null){
+                    if(arbitre.getUsername().equals(compte.getUsername())) blnArbitreEtaitSpectateur = false;
+                    if(arbitre.getUsername().equals(compte.getUsername())) blnArbitreEtaitAttente = false;
+                    if(arbitre.getUsername().equals(compte.getUsername())) blnRetirerArbitre = true;
+                }
+                if(combattantBlanc != null){
+                    if(combattantBlanc.getUsername().equals(compte.getUsername())) blnCombattantBlancEtaitArbitre = false;
+                    if(combattantBlanc.getUsername().equals(compte.getUsername())) blnRetirerCombattantBlanc = true;
+                }
+                if (combattantRouge != null){
+                    if(combattantRouge.getUsername().equals(compte.getUsername())) blnCombattantRougeEtaitArbitre = false;
+                    if(combattantRouge.getUsername().equals(compte.getUsername())) blnRetirerCombattantRouge = true;
+                }
+
                 for(Compte c : lstComptesAttenteRecu){
                     if(c.getUsername().equals(compte.getUsername())){
                         index = lstComptesAttenteRecu.indexOf(c);
@@ -165,6 +220,8 @@ public class ReponseControleur {
                 lstComptesAilleurVar.add(compte);
                 break;
             case "ATTENTE":
+                if(arbitre != null && arbitre.getUsername().equals(compte.getUsername())) blnArbitreEtaitSpectateur = false;
+
                 for(Compte c : lstComptesAilleurRecu){
                     if(c.getUsername().equals(compte.getUsername())) {
                         index = lstComptesAilleurRecu.indexOf(c);
@@ -181,6 +238,9 @@ public class ReponseControleur {
                 lstComptesAttenteVar.add(compte);
                 break;
             case "SPECTATEUR":
+                if(combattantBlanc != null && combattantBlanc.getUsername().equals(compte.getUsername())) blnRetirerCombattantBlanc = true;
+                if(combattantRouge != null && combattantRouge.getUsername().equals(compte.getUsername())) blnRetirerCombattantRouge = true;
+                if(arbitre != null && arbitre.getUsername().equals(compte.getUsername())) blnArbitreEtaitAttente = false;
                 for(Compte c : lstComptesAilleurRecu){
                     if(c.getUsername().equals(compte.getUsername())) {
                         index = lstComptesAilleurRecu.indexOf(c);
@@ -197,9 +257,21 @@ public class ReponseControleur {
                 lstComptesSpectateurVar.add(compte);
                 break;
             case "PEACE":
-                if(combattantBlanc.getUsername().equals(compte.getUsername())) blnRetirerCombattantBlanc = true;
-                if(combattantRouge.getUsername().equals(compte.getUsername())) blnRetirerCombattantRouge = true;
-                if(arbitre.getUsername().equals(compte.getUsername())) blnRetirerArbitre = true;
+                if(combattantBlanc != null){
+
+                    if(combattantBlanc.getUsername().equals(compte.getUsername())) blnRetirerCombattantBlanc = true;
+                    if(combattantBlanc.getUsername().equals(compte.getUsername())) blnCombattantBlancEtaitArbitre = false;
+                }
+                if(combattantRouge != null){
+
+                    if(combattantRouge.getUsername().equals(compte.getUsername())) blnRetirerCombattantRouge = true;
+                    if(combattantRouge.getUsername().equals(compte.getUsername())) blnCombattantRougeEtaitArbitre = false;
+                }
+                if(arbitre != null){
+                    if(arbitre.getUsername().equals(compte.getUsername())) blnRetirerArbitre = true;
+                    if(arbitre.getUsername().equals(compte.getUsername())) blnArbitreEtaitSpectateur = false;
+                    if(arbitre.getUsername().equals(compte.getUsername())) blnArbitreEtaitAttente = false;
+                }
                 for(Compte c : lstComptesAilleurRecu){
                     if(c.getUsername().equals(compte.getUsername())) {
                         index = lstComptesAilleurRecu.indexOf(c);
