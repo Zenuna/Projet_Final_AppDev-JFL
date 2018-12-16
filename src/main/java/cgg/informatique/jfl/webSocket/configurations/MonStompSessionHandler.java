@@ -1,7 +1,5 @@
 package cgg.informatique.jfl.webSocket.configurations;
 
-import cgg.informatique.jfl.webSocket.Message;
-import cgg.informatique.jfl.webSocket.Reponse;
 import org.springframework.messaging.simp.stomp.*;
 
 import java.lang.reflect.Type;

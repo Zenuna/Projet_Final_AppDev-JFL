@@ -2,7 +2,6 @@ package cgg.informatique.jfl.webSocket;
 
 
 import cgg.informatique.jfl.webSocket.configurations.MonStompSessionHandler;
-import cgg.informatique.jfl.webSocket.configurations.WebSocketConfig;
 import cgg.informatique.jfl.webSocket.dao.*;
 import cgg.informatique.jfl.webSocket.entites.*;
 import com.fasterxml.jackson.databind.ObjectMapper;
@@ -29,7 +28,6 @@ import java.util.Random;
 
 @SpringBootApplication
 public class WebSocketApplication implements CommandLineRunner {
-	boolean blnCombat = false;
 	@Autowired
 	private CompteDao compteDao;
 
@@ -38,61 +36,25 @@ public class WebSocketApplication implements CommandLineRunner {
 	@Autowired
 	private CombatDao combatDao;
 
-	String chiffreRecu = "";
+
+    private boolean blnCombat = false;
+
 
 	private List<Compte> lstComptesAilleurs = new ArrayList<>();
 	private List<Compte> lstComptesSpectateur = new ArrayList<>();
 	private List<Compte> lstComptesAttente = new ArrayList<>();
 	private List<Compte> lstComptesArbitre = new ArrayList<>();
 
-	private Compte combattantRouge = new Compte();
-	private Compte combattantBlanc = new Compte();
-	private Compte arbitre = new Compte();
+	private Compte combattantRouge = null;
+	private Compte combattantBlanc = null;
+	private Compte arbitre = null;
 
 	public static void main(String[] args) {
 		SpringApplication.run(WebSocketApplication.class, args);
 	}
 
-	public void TrouverAdversaire(){
-		List<Groupe> lstGroupe = groupeDao.findAll();
-		Integer idGroupRouge = -1;
-		for(Groupe unGroupe: lstGroupe){
-			if(unGroupe.getGroupe().equals(combattantRouge.getGroupe())) idGroupRouge = unGroupe.getId();
-		}
-		boolean blnTrouver = false;
-		int idBlanc = -1;
-		int trouverPlusProche = Integer.MAX_VALUE;
-		for( int i = 0; i < lstComptesAttente.size() && !blnTrouver;i++){
-			Compte veutCombattre = lstComptesAttente.get(i);
-			if(veutCombattre != combattantRouge && veutCombattre.getGroupe().equals(combattantRouge.getGroupe())){
-				combattantBlanc = veutCombattre;
-				blnTrouver = true;
-			}
-			else if(veutCombattre != combattantRouge){
-				Integer idGroupeCombattantActuelle = 0;
-				for(Groupe unGroupe : lstGroupe){
-					if(unGroupe.getGroupe().equals(veutCombattre.getGroupe()))idGroupeCombattantActuelle = unGroupe.getId();
-				}
-				if(idGroupeCombattantActuelle-idGroupRouge < trouverPlusProche){
-					idBlanc = i;
-					trouverPlusProche = idGroupeCombattantActuelle-idGroupRouge;
-				}
-			}
-		}
-		combattantBlanc = lstComptesAttente.get(idBlanc);
-	}
 	@Override
 	public void run(String... args) throws Exception {
-		// Ce laboratoire est basé sur les exemples suivants:
-		// https://spring.io/guides/gs/messaging-stomp-websocket/
-		// https://www.sitepoint.com/implementing-spring-websocket-server-and-client/
-		// https://www.baeldung.com/websockets-api-java-spring-client
-		// https://www.baeldung.com/spring-security-websockets
-		// https://www.html5rocks.com/en/tutorials/getusermedia/intro/
-		// https://davidwalsh.name/demo/camera.php
-		// https://spring.io/blog/2015/06/08/cors-support-in-spring-framework
-		// https://developer.mozilla.org/fr/docs/Web/API/MediaDevices/getUserMedia
-		//
 		WebSocketClient simpleWebSocketClient = new StandardWebSocketClient();
 		List<Transport> transports = new ArrayList<>();
 
@@ -111,15 +73,8 @@ public class WebSocketApplication implements CommandLineRunner {
 		StompSessionHandler sessionHandler = new MonStompSessionHandler();
 		StompSession session = stompClient.connect(url, sessionHandler).get();
 		Long creation = System.currentTimeMillis();
-		Message		unMessage = new Message("s1@dojo", "ATTENTE", creation, "", "POSITION");
-		session.send("/app/listePosition",
 
-				unMessage);unMessage = new Message("v1@dojo", "ATTENTE", creation, "", "POSITION");
-		session.send("/app/listePosition", unMessage);
-
-		unMessage = new Message("s2@dojo", "ARBITRE", creation, "", "POSITION");
-		session.send("/app/listePosition", unMessage);
-		// MESSAGES
+		// Réception du message du changement de groupe
 		session.subscribe("/sujet/radiogroup", new StompFrameHandler() {
 			@Override
 			public Type getPayloadType(StompHeaders headers) {
@@ -133,8 +88,7 @@ public class WebSocketApplication implements CommandLineRunner {
 					Reponse rep = objMapper.readValue(payload.toString(),Reponse.class);
 					Compte compte = new Compte();
 					compte = compteDao.findById(rep.getDe()).get();
-					videListe(rep.getTexte().trim().toUpperCase(),compte);
-
+                    videListeExtract(rep.getTexte().trim().toUpperCase(), compte, -1, lstComptesAttente, lstComptesSpectateur, lstComptesAilleurs, lstComptesArbitre);
 				}
 				catch(Exception e){
 					System.out.println(e.toString());
@@ -143,12 +97,12 @@ public class WebSocketApplication implements CommandLineRunner {
 			}
 		});
 
+		// Réception du message de la fin d'un combat
 		session.subscribe("/sujet/finCombat", new StompFrameHandler() {
 			@Override
 			public Type getPayloadType(StompHeaders headers) {
 				return Reponse.class;
 			}
-
 			@Override
 			public void handleFrame(StompHeaders headers,Object payload) {
 				combattantRouge = null;
@@ -157,41 +111,87 @@ public class WebSocketApplication implements CommandLineRunner {
 				blnCombat = false;
 			}
 		});
-		while (true) {
-			//À toutes les 5 secondes, un message est transmis par le serveur
 
-			Thread.sleep(4000);
+		// Boucle continue pour les combats
+		while (true) {
+			Thread.sleep(4000);                                                                                                 //Attente 4s
 			if(!blnCombat && lstComptesAttente.size()>=2 && lstComptesArbitre.size()>=1){
-				blnCombat = true;
 				Random rand = new Random();
 				combattantRouge = lstComptesAttente.get(rand.nextInt(lstComptesAttente.size()));
-				arbitre = lstComptesArbitre.get(rand.nextInt(lstComptesArbitre.size()));
 				TrouverAdversaire();
-				String debutCombat = combattantRouge.fixString()+"-A-"+combattantBlanc.fixString()+"-A-"+arbitre.fixString();
-				System.out.println(debutCombat);
+				TrouverArbitre();
+				if(combattantRouge != null && combattantBlanc != null && arbitre != null){
+					blnCombat = true;
+				    // Message pour le début d'un combat
+                    String debutCombat = combattantRouge.fixString()+"-A-"+combattantBlanc.fixString()+"-A-"+arbitre.fixString();
+                    Message unMessage = new Message("DEBUTCOMBAT" ,debutCombat,  creation, "" ,"POSITION");
+                    session.send("/app/debutCombat", unMessage);
 
-				unMessage = new Message("DEBUTCOMBAT" ,debutCombat,  creation, "" ,"POSITION");
-				session.send("/app/debutCombat", unMessage);
-				rand = new Random();
-				int randomBlanc = rand.nextInt(3)+1;
-				int randomRouge = rand.nextInt(3)+1;
-				chiffreRecu = randomBlanc + "-A-" + randomRouge;
-				Thread.sleep(2000);
-				unMessage = new Message("ENVOYERCHIFFRE" ,debutCombat,  creation, chiffreRecu,"POSITION");
-				session.send("/app/envoyerChiffre", unMessage);
-				entrerUnCombat(randomBlanc,randomRouge,combattantBlanc,arbitre,combattantRouge);
-				Thread.sleep(4000);
-				unMessage = new Message("FINCOMBAT" ,"",  creation, "" ,"");
-				session.send("/app/finCombat", unMessage);
+                    // Message pour indiquer les résultats
+                    rand = new Random();
+                    int randomBlanc = rand.nextInt(3)+1;
+                    int randomRouge = rand.nextInt(3)+1;
+                    String chiffreRecu = randomBlanc + "-A-" + randomRouge;
+
+                    Thread.sleep(2000);                                                                                         //Attente 2s
+
+                    unMessage = new Message("ENVOYERCHIFFRE" ,debutCombat,  creation, chiffreRecu,"POSITION");
+                    session.send("/app/envoyerChiffre", unMessage);
+                    // Entrer le résultat du combat à la base de donnée
+                    entrerUnCombat(randomBlanc,randomRouge);
+
+                    Thread.sleep(4000);                                                                                          //Attente 4s
+
+                    // Message pour indiquer la fin du combat
+                    unMessage = new Message("FINCOMBAT" ,"",  creation, "" ,"");
+                    session.send("/app/finCombat", unMessage);
+                }
 			}
-
-
 		}
 	}
-	public void videListe(String strBonneListe, Compte compte){
-		int index = -1;
-		videListeExtract(strBonneListe, compte, index, lstComptesAttente, lstComptesSpectateur, lstComptesAilleurs, lstComptesArbitre);
-	}
+
+	// Fonction pour trouver l'adversaire lors d'un combat
+    public void TrouverAdversaire(){
+        List<Groupe> lstGroupe = groupeDao.findAll();
+        Integer idGroupRouge = -1;
+        for(Groupe unGroupe: lstGroupe){
+            if(unGroupe.getGroupe().equals(combattantRouge.getGroupe().getGroupe())) idGroupRouge = unGroupe.getId();
+        }
+        boolean blnTrouver = false;
+        int idBlanc = -1;
+        int trouverPlusProche = Integer.MAX_VALUE;
+        for( int i = 0; i < lstComptesAttente.size() && !blnTrouver;i++){
+            Compte veutCombattre = lstComptesAttente.get(i);
+            if(veutCombattre != combattantRouge && veutCombattre.getGroupe().equals(combattantRouge.getGroupe())){
+                combattantBlanc = veutCombattre;
+                blnTrouver = true;
+            }
+            else if(veutCombattre != combattantRouge){
+                Integer idGroupeCombattantActuelle = 0;
+                for(Groupe unGroupe : lstGroupe){
+                    if(unGroupe.getGroupe().equals(veutCombattre.getGroupe().getGroupe()))idGroupeCombattantActuelle = unGroupe.getId();
+                }
+                if(idGroupeCombattantActuelle-idGroupRouge < trouverPlusProche){
+                    idBlanc = i;
+                    trouverPlusProche = idGroupeCombattantActuelle-idGroupRouge;
+                }
+            }
+        }
+        combattantBlanc = lstComptesAttente.get(idBlanc);
+    }
+
+    // Fonction pour trouver l'arbitre lors d'un combat
+    public void TrouverArbitre(){
+        List<Compte> lstCompteArbtireVerifier = new ArrayList<>();
+        for(Compte c : lstComptesArbitre){
+            if(!c.getUsername().equals(combattantBlanc.getUsername()) && !c.getUsername().equals(combattantRouge.getUsername())) lstCompteArbtireVerifier.add(c);
+        }
+        Random rand = new Random();
+        if(lstCompteArbtireVerifier.size()>0) arbitre = lstComptesArbitre.get(rand.nextInt(lstCompteArbtireVerifier.size()));
+        else arbitre = null;
+    }
+
+    // Trouver qui gagne le combat
 	public Integer trouverVainqueur(int chiffreBlanc, int chiffreRouge){
 		if(chiffreBlanc == chiffreRouge){
 			return 0;
@@ -224,17 +224,8 @@ public class WebSocketApplication implements CommandLineRunner {
 		return 0;
 	}
 
-	public void entrerUnCombat(int chiffreBlanc, int chiffreRouge, Compte cptBlanc, Compte cptArbitre, Compte cptRouge) {
-		int ceintureRouge = -1;
-		int ceintureBlanc = -1;
-		int diffCeinture = 0;
-		List<Groupe> lstGroupe = groupeDao.findAll();
-		for (Groupe g : lstGroupe) {
-			if (g.getGroupe().equals(cptRouge.getGroupe())) ceintureRouge = g.getId();
-			else if (g.getGroupe().equals(cptBlanc.getGroupe())) ceintureBlanc = g.getId();
-		}
-		diffCeinture = ceintureBlanc - ceintureRouge;
-		int[] tabPts = pointsParDifference(Math.abs(diffCeinture));
+	// Entre un combat dans la base de donnée
+	public void entrerUnCombat(int chiffreBlanc, int chiffreRouge) {
 		int intVainqueur = trouverVainqueur(chiffreBlanc, chiffreRouge);
 		Combat unCombat = new Combat();
 		switch (intVainqueur) {
@@ -252,41 +243,6 @@ public class WebSocketApplication implements CommandLineRunner {
 				break;
 		}
 		combatDao.save(unCombat);
-	}
-
-	public int[] pointsParDifference(int diffCeinture){
-		int[] tabPts = new int[2];
-		switch(diffCeinture){
-			case 0:
-				tabPts[0] = 10;
-				tabPts[1] = 10;
-				break;
-			case 1:
-				tabPts[0] = 12;
-				tabPts[1] = 9;
-				break;
-			case 2:
-				tabPts[0] = 15;
-				tabPts[1] = 7;
-				break;
-			case 3:
-				tabPts[0] = 20;
-				tabPts[1] = 5;
-				break;
-			case 4:
-				tabPts[0] = 25;
-				tabPts[1] = 3;
-				break;
-			case 5:
-				tabPts[0] = 30;
-				tabPts[1] = 2;
-				break;
-			case 6:
-				tabPts[0] = 50;
-				tabPts[1] = 1;
-				break;
-		}
-		return tabPts;
 	}
 	public static void videListeExtract(String strBonneListe, Compte compte, int index, List<Compte> lstAttente, List<Compte> lstSpectateur, List<Compte> lstAilleur, List<Compte> lstArbitre) {
 		List<Compte> lstComptesAttenteRecu = lstAttente;

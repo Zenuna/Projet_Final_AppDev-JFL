@@ -145,13 +145,6 @@ function connexion() {
                     $("#paroleRouge").text("");
                     $("#paroleBlanc").text("");
                     $("#paroleArbitre").text("");
-                    /*stompClient.send("/app/finCombat", {}, JSON.stringify({
-                        'texte': "FINCOMBAT",
-                        'creation': "",
-                        'de': "",
-                        'avatar': "",
-                        'type': ""
-                    }));*/
                     combattantRouge = "";
                     combattantBlanc = "";
                     arbitre = "";
@@ -177,7 +170,7 @@ function refreshListeSpectateur(){
             $.get("/TrouverAvatarSupreme/" + value.avatar, function (data) {
                 async : false;
                 inc++;
-                $("#" + "imgSiegeSpec" + inc).attr('src', data);
+                if(inc <= 12) $("#" + "imgSiegeSpec" + inc).attr('src', data);
             });
         });
         for(var i = inc+1; i <= 12; i++){
@@ -195,7 +188,7 @@ function refreshListeAttente(){
             $.get("/TrouverAvatarSupreme/" + value.avatar, function (data) {
                 async : false;
                 inc++;
-                $("#" + "imgSiegeCombattant" + inc).attr('src', data);
+                if(inc <= 12) $("#" + "imgSiegeCombattant" + inc).attr('src', data);
             });
         });
         for(var i = inc+1; i <= 12; i++){
@@ -203,21 +196,15 @@ function refreshListeAttente(){
         }
     });
 }
-function afficherReponse(message) {
-    $("#reponses").append("<tr style='text-align: center'>"    + "<td><img width=100 height=75 src='" +  message.avatar    + "'/></td>" +
-        "<td>Message " + message.type    + " de " + message.de    +  " à " + chaineTemps + "</td>" +
-        "<td>Texte:" + message.texte + "</td>"+
-        "</tr>");
-}
 
 function MainJouee(chiffre){
     switch(chiffre){
         case "1":
-            return "ROCHE"
+            return "ROCHE";
         case "2":
-            return "PAPIER"
+            return "PAPIER";
         case "3":
-            return "CISEAUX"
+            return "CISEAUX";
     }
 }
 

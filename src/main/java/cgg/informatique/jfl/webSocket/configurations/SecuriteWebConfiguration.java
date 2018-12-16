@@ -68,6 +68,7 @@ public class SecuriteWebConfiguration extends WebSecurityConfigurerAdapter {
     protected void configure(AuthenticationManagerBuilder auth) throws Exception {
         auth.authenticationProvider(authenticationProvider());
     }
+
     //Définir les méthodes qui permettront l’identification monUserDetailsService et le cryptage des mots de passe.
     @Bean
     public DaoAuthenticationProvider authenticationProvider() {
@@ -76,11 +77,7 @@ public class SecuriteWebConfiguration extends WebSecurityConfigurerAdapter {
         authProvider.setPasswordEncoder(passwordEncoder());
         return authProvider;
     }
-    //Définir la méthode de cryptage des mots de passe
-    //https://en.wikipedia.org/wiki/Bcrypt
-    //La valeur par defaut est 10
-    //https://docs.spring.io/spring-security/site/docs/4.2.7.RELEASE/apidocs/org/springframework/security/crypto/bcrypt/BCryptPasswordEncoder.html
-    //https://www.browserling.com/tools/bcrypt
+
     @Bean
     public BCryptPasswordEncoder passwordEncoder() {
 
