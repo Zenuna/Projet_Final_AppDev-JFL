@@ -175,7 +175,7 @@ public class WebSocketApplication implements CommandLineRunner {
 				rand = new Random();
 				int randomBlanc = rand.nextInt(3)+1;
 				int randomRouge = rand.nextInt(3)+1;
-				chiffreRecu = randomBlanc + "|" + randomRouge;
+				chiffreRecu = randomBlanc + "-A-" + randomRouge;
 				Thread.sleep(2000);
 				unMessage = new Message("ENVOYERCHIFFRE" ,debutCombat,  creation, chiffreRecu,"POSITION");
 				session.send("/app/envoyerChiffre", unMessage);

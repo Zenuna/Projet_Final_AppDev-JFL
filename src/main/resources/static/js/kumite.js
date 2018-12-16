@@ -75,7 +75,7 @@ function connexion() {
                 })
             }
 
-            var creation = JSON.parse(reponse.body).avatar.split("|");
+            var creation = JSON.parse(reponse.body).avatar.split("-A-");
             var millisecondsToWait = 1000;
             $("#paroleArbitre").text("Rei!");
             setTimeout(function(){
