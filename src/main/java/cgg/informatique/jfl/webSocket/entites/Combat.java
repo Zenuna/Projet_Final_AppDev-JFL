@@ -116,7 +116,24 @@ public class Combat {
     }
 
     public Combat(){}
-    public Combat(int creditsArbitre, Long date, int pointsBlanc, int pointsRouge, Compte arbitre, Compte blanc,  Groupe ceintureBlanc,Groupe ceintureRouge,Compte rouge) {
+
+    @Override
+    public String toString() {
+        return "Combat{" +
+                "id=" + id +
+                ", date=" + date +
+                ", arbitre=" + arbitre.getUsername() +
+                ", rouge=" + rouge.getUsername() +
+                ", blanc=" + blanc.getUsername() +
+                ", ceintureRouge=" + ceintureRouge.getGroupe() +
+                ", ceintureBlanc=" + ceintureBlanc.getGroupe() +
+                ", creditsArbitre=" + creditsArbitre +
+                ", pointsBlanc=" + pointsBlanc +
+                ", pointsRouge=" + pointsRouge +
+                '}';
+    }
+
+    public Combat(int creditsArbitre, Long date, int pointsBlanc, int pointsRouge, Compte arbitre, Compte blanc, Groupe ceintureBlanc, Groupe ceintureRouge, Compte rouge) {
         this.date = date;
         this.arbitre = arbitre;
         this.rouge = rouge;

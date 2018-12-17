@@ -1,6 +1,8 @@
 package cgg.informatique.jfl.webSocket.entites;
 
 import javax.persistence.*;
+import java.text.DateFormat;
+import java.util.Date;
 
 @Entity
 @Table(name="EXAMENS")
@@ -73,6 +75,19 @@ public class Examen {
     }
 
     public Examen(){}
+
+    @Override
+    public String toString() {
+
+        return "Examen{" +
+                "id=" + id +
+                ", date=" + date+
+                ", aReussi=" + aReussi +
+                ", ceinture=" + ceinture.getGroupe() +
+                ", evaluateur=" + evaluateur.getUsername() +
+                ", evalue=" + evalue.getUsername() +
+                '}';
+    }
 
     public Examen(Long date, Boolean aReussi, Groupe ceinture, Compte evaluateur, Compte evalue) {
         this.date = date;

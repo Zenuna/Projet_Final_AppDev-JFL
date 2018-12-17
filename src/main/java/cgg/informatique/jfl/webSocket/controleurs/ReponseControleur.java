@@ -322,4 +322,12 @@ public class ReponseControleur {
                 break;
         }
     }
+
+    @CrossOrigin()
+    @MessageMapping("/gradation/ceinture")
+    @SendTo("/sujet/position/ceinture")
+    public Reponse gradation(Message message) throws Exception {
+        return new Reponse(id++, message.getDe(), message.getTexte(), message.getCreation(), message.getAvatar());
+    }
+
 }

@@ -36,6 +36,9 @@ public class WebSocketApplication implements CommandLineRunner {
 	@Autowired
 	private CombatDao combatDao;
 
+	@Autowired
+	private ExamenDao examenDao;
+
 
     private boolean blnCombat = false;
 
@@ -109,6 +112,37 @@ public class WebSocketApplication implements CommandLineRunner {
 				combattantBlanc = null;
 				arbitre = null;
 				blnCombat = false;
+			}
+		});
+		session.subscribe("/sujet/position/ceinture", new StompFrameHandler() {
+			@Override
+			public Type getPayloadType(StompHeaders headers) {
+				return Reponse.class;
+			}
+
+			@Override
+			public void handleFrame(StompHeaders headers,Object payload) {
+				try {
+					ObjectMapper objMapper = new ObjectMapper();
+					Reponse rep = objMapper.readValue(payload.toString(), Reponse.class);
+					Compte c = compteDao.findById(rep.getTexte().split("-")[0]).get();
+					Compte evaluateur = compteDao.findById(rep.getTexte().split("-")[1]).get();
+					Examen ex;
+
+					if(rep.getAvatar().trim().equals("TRUMP")){
+						ex = new Examen(System.currentTimeMillis(),false,groupeDao.findById(c.getGroupe().getId()+1).get(),evaluateur,c);
+						compteDao.save(c);
+						examenDao.save(ex);
+					}else{
+						c.setGroupe(groupeDao.findById(c.getGroupe().getId()+1).get());
+						ex = new Examen(System.currentTimeMillis(),true,groupeDao.findById(c.getGroupe().getId()+1).get(),evaluateur,c);
+						compteDao.save(c);
+						examenDao.save(ex);
+					}
+				}
+				catch (Exception e){
+					e.printStackTrace();
+				}
 			}
 		});
 
