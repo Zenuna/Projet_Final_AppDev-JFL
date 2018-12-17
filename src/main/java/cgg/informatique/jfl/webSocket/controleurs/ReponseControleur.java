@@ -189,18 +189,18 @@ public class ReponseControleur {
         List<Compte> lstComptesArbitreRecu = lstComptesArbitreVar;
         switch(strBonneListe){
             case "AILLEURS" :
-                if(arbitre != null){
-                    if(arbitre.getUsername().equals(compte.getUsername())) blnArbitreEtaitSpectateur = false;
-                    if(arbitre.getUsername().equals(compte.getUsername())) blnArbitreEtaitAttente = false;
-                    if(arbitre.getUsername().equals(compte.getUsername())) blnRetirerArbitre = true;
+                if(arbitre != null && arbitre.getUsername().equals(compte.getUsername())){
+                    blnArbitreEtaitSpectateur = false;
+                    blnArbitreEtaitAttente = false;
+                    blnRetirerArbitre = true;
                 }
-                if(combattantBlanc != null){
-                    if(combattantBlanc.getUsername().equals(compte.getUsername())) blnCombattantBlancEtaitArbitre = false;
-                    if(combattantBlanc.getUsername().equals(compte.getUsername())) blnRetirerCombattantBlanc = true;
+                if(combattantBlanc != null && combattantBlanc.getUsername().equals(compte.getUsername())){
+                    blnCombattantBlancEtaitArbitre = false;
+                    blnRetirerCombattantBlanc = true;
                 }
-                if (combattantRouge != null){
-                    if(combattantRouge.getUsername().equals(compte.getUsername())) blnCombattantRougeEtaitArbitre = false;
-                    if(combattantRouge.getUsername().equals(compte.getUsername())) blnRetirerCombattantRouge = true;
+                if (combattantRouge != null && combattantRouge.getUsername().equals(compte.getUsername())){
+                    blnCombattantRougeEtaitArbitre = false;
+                    blnRetirerCombattantRouge = true;
                 }
 
                 for(Compte c : lstComptesAttenteRecu){
@@ -257,20 +257,18 @@ public class ReponseControleur {
                 lstComptesSpectateurVar.add(compte);
                 break;
             case "PEACE":
-                if(combattantBlanc != null){
-
-                    if(combattantBlanc.getUsername().equals(compte.getUsername())) blnRetirerCombattantBlanc = true;
-                    if(combattantBlanc.getUsername().equals(compte.getUsername())) blnCombattantBlancEtaitArbitre = false;
+                if(combattantBlanc != null && combattantBlanc.getUsername().equals(compte.getUsername())){
+                    blnRetirerCombattantBlanc = true;
+                    blnCombattantBlancEtaitArbitre = false;
                 }
-                if(combattantRouge != null){
-
-                    if(combattantRouge.getUsername().equals(compte.getUsername())) blnRetirerCombattantRouge = true;
-                    if(combattantRouge.getUsername().equals(compte.getUsername())) blnCombattantRougeEtaitArbitre = false;
+                if(combattantRouge != null && combattantRouge.getUsername().equals(compte.getUsername())){
+                    blnRetirerCombattantRouge = true;
+                    blnCombattantRougeEtaitArbitre = false;
                 }
-                if(arbitre != null){
-                    if(arbitre.getUsername().equals(compte.getUsername())) blnRetirerArbitre = true;
-                    if(arbitre.getUsername().equals(compte.getUsername())) blnArbitreEtaitSpectateur = false;
-                    if(arbitre.getUsername().equals(compte.getUsername())) blnArbitreEtaitAttente = false;
+                if(arbitre != null && arbitre.getUsername().equals(compte.getUsername())){
+                    blnRetirerArbitre = true;
+                    blnArbitreEtaitSpectateur = false;
+                    blnArbitreEtaitAttente = false;
                 }
                 for(Compte c : lstComptesAilleurRecu){
                     if(c.getUsername().equals(compte.getUsername())) {
@@ -315,6 +313,9 @@ public class ReponseControleur {
                         if(c.getUsername().equals(compte.getUsername())) {
                             index = lstComptesArbitreRecu.indexOf(c);
                         }
+                        if(combattantRouge != null && combattantRouge.getUsername().equals(compte.getUsername())) blnCombattantRougeEtaitArbitre = false;
+                        if(combattantBlanc != null && combattantBlanc.getUsername().equals(compte.getUsername())) blnCombattantBlancEtaitArbitre = false;
+                        if(arbitre != null && arbitre.getUsername().equals(compte.getUsername())) blnRetirerArbitre = true;
                     }
                     if(index != -1) lstComptesArbitreVar.remove(index);
                 }
